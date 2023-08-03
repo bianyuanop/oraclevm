@@ -10,7 +10,7 @@ import (
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
 	"github.com/ava-labs/hypersdk/crypto"
-	"github.com/bianyuanop/templatevm/storage"
+	"github.com/bianyuanop/oraclevm/storage"
 )
 
 var _ chain.Auth = (*ED25519)(nil)

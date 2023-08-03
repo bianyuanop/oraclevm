@@ -16,9 +16,9 @@ import (
 	"github.com/ava-labs/hypersdk/trace"
 	"github.com/ava-labs/hypersdk/vm"
 
-	"github.com/bianyuanop/templatevm/consts"
-	"github.com/bianyuanop/templatevm/utils"
-	"github.com/bianyuanop/templatevm/version"
+	"github.com/bianyuanop/oraclevm/consts"
+	"github.com/bianyuanop/oraclevm/utils"
+	"github.com/bianyuanop/oraclevm/version"
 )
 
 var _ vm.Config = (*Config)(nil)

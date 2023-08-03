@@ -17,7 +17,7 @@ import (
 	"github.com/ava-labs/hypersdk/consts"
 	"github.com/ava-labs/hypersdk/crypto"
 
-	"github.com/bianyuanop/templatevm/utils"
+	"github.com/bianyuanop/oraclevm/utils"
 )
 
 type ReadState func(context.Context, [][]byte) ([][]byte, []error)

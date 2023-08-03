@@ -8,8 +8,8 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 
-	"github.com/bianyuanop/templatevm/genesis"
-	"github.com/bianyuanop/templatevm/utils"
+	"github.com/bianyuanop/oraclevm/genesis"
+	"github.com/bianyuanop/oraclevm/utils"
 )
 
 type JSONRPCServer struct {

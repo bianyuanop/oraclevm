@@ -13,10 +13,10 @@ import (
 	"github.com/ava-labs/hypersdk/requester"
 	"github.com/ava-labs/hypersdk/rpc"
 	"github.com/ava-labs/hypersdk/utils"
-	"github.com/bianyuanop/templatevm/consts"
-	"github.com/bianyuanop/templatevm/genesis"
-	_ "github.com/bianyuanop/templatevm/registry" // ensure registry populated
-	"github.com/bianyuanop/templatevm/storage"
+	"github.com/bianyuanop/oraclevm/consts"
+	"github.com/bianyuanop/oraclevm/genesis"
+	_ "github.com/bianyuanop/oraclevm/registry" // ensure registry populated
+	"github.com/bianyuanop/oraclevm/storage"
 )
 
 type JSONRPCClient struct {

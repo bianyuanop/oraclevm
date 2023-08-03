@@ -11,9 +11,9 @@ import (
 	"github.com/ava-labs/hypersdk/crypto"
 	"github.com/ava-labs/hypersdk/rpc"
 	hutils "github.com/ava-labs/hypersdk/utils"
-	"github.com/bianyuanop/templatevm/actions"
-	"github.com/bianyuanop/templatevm/auth"
-	brpc "github.com/bianyuanop/templatevm/rpc"
+	"github.com/bianyuanop/oraclevm/actions"
+	"github.com/bianyuanop/oraclevm/auth"
+	brpc "github.com/bianyuanop/oraclevm/rpc"
 	"github.com/spf13/cobra"
 )
 

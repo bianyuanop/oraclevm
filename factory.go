@@ -7,7 +7,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/vms"
 
-	"github.com/bianyuanop/templatevm/controller"
+	"github.com/bianyuanop/oraclevm/controller"
 )
 
 var _ vms.Factory = &Factory{}

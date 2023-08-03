@@ -11,8 +11,8 @@ import (
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/utils/ulimit"
 	"github.com/ava-labs/avalanchego/vms/rpcchainvm"
-	"github.com/bianyuanop/templatevm/cmd/morpheusvm/version"
-	"github.com/bianyuanop/templatevm/controller"
+	"github.com/bianyuanop/oraclevm/cmd/morpheusvm/version"
+	"github.com/bianyuanop/oraclevm/controller"
 	"github.com/spf13/cobra"
 )
 

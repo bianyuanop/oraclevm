@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/bianyuanop/templatevm/genesis"
+	"github.com/bianyuanop/oraclevm/genesis"
 )
 
 var genesisCmd = &cobra.Command{

@@ -1,4 +1,4 @@
-module github.com/bianyuanop/templatevm
+module github.com/bianyuanop/oraclevm
 
 go 1.20
 

@@ -9,7 +9,7 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/hypersdk/crypto"
 	hutils "github.com/ava-labs/hypersdk/utils"
-	brpc "github.com/bianyuanop/templatevm/rpc"
+	brpc "github.com/bianyuanop/oraclevm/rpc"
 	"github.com/spf13/cobra"
 )
 

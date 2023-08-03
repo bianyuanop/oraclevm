@@ -6,7 +6,7 @@ package utils
 import (
 	"github.com/ava-labs/hypersdk/crypto"
 
-	"github.com/bianyuanop/templatevm/consts"
+	"github.com/bianyuanop/oraclevm/consts"
 )
 
 func Address(pk crypto.PublicKey) string {

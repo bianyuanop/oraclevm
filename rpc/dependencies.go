@@ -9,7 +9,7 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/trace"
 	"github.com/ava-labs/hypersdk/crypto"
-	"github.com/bianyuanop/templatevm/genesis"
+	"github.com/bianyuanop/oraclevm/genesis"
 )
 
 type Controller interface {

@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/bianyuanop/templatevm/actions"
+	"github.com/bianyuanop/oraclevm/actions"
 	"github.com/spf13/cobra"
 )
 

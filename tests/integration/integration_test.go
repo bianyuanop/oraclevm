@@ -41,13 +41,13 @@ import (
 	hutils "github.com/ava-labs/hypersdk/utils"
 	"github.com/ava-labs/hypersdk/vm"
 
-	"github.com/bianyuanop/templatevm/actions"
-	"github.com/bianyuanop/templatevm/auth"
-	lconsts "github.com/bianyuanop/templatevm/consts"
-	"github.com/bianyuanop/templatevm/controller"
-	"github.com/bianyuanop/templatevm/genesis"
-	lrpc "github.com/bianyuanop/templatevm/rpc"
-	"github.com/bianyuanop/templatevm/utils"
+	"github.com/bianyuanop/oraclevm/actions"
+	"github.com/bianyuanop/oraclevm/auth"
+	lconsts "github.com/bianyuanop/oraclevm/consts"
+	"github.com/bianyuanop/oraclevm/controller"
+	"github.com/bianyuanop/oraclevm/genesis"
+	lrpc "github.com/bianyuanop/oraclevm/rpc"
+	"github.com/bianyuanop/oraclevm/utils"
 )
 
 const transferTxFee = 400 /* base fee */ + 40 /* transfer fee */

@@ -19,13 +19,13 @@ import (
 	"github.com/ava-labs/hypersdk/vm"
 	"go.uber.org/zap"
 
-	"github.com/bianyuanop/templatevm/actions"
-	"github.com/bianyuanop/templatevm/config"
-	"github.com/bianyuanop/templatevm/consts"
-	"github.com/bianyuanop/templatevm/genesis"
-	"github.com/bianyuanop/templatevm/rpc"
-	"github.com/bianyuanop/templatevm/storage"
-	"github.com/bianyuanop/templatevm/version"
+	"github.com/bianyuanop/oraclevm/actions"
+	"github.com/bianyuanop/oraclevm/config"
+	"github.com/bianyuanop/oraclevm/consts"
+	"github.com/bianyuanop/oraclevm/genesis"
+	"github.com/bianyuanop/oraclevm/rpc"
+	"github.com/bianyuanop/oraclevm/storage"
+	"github.com/bianyuanop/oraclevm/version"
 )
 
 var _ vm.Controller = (*Controller)(nil)

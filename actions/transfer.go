@@ -13,8 +13,8 @@ import (
 	"github.com/ava-labs/hypersdk/consts"
 	"github.com/ava-labs/hypersdk/crypto"
 	"github.com/ava-labs/hypersdk/utils"
-	"github.com/bianyuanop/templatevm/auth"
-	"github.com/bianyuanop/templatevm/storage"
+	"github.com/bianyuanop/oraclevm/auth"
+	"github.com/bianyuanop/oraclevm/storage"
 )
 
 var _ chain.Action = (*Transfer)(nil)

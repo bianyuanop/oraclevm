@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/bianyuanop/templatevm/consts"
-	"github.com/bianyuanop/templatevm/version"
+	"github.com/bianyuanop/oraclevm/consts"
+	"github.com/bianyuanop/oraclevm/version"
 )
 
 func init() {

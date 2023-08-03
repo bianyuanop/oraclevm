@@ -11,10 +11,10 @@ import (
 	"github.com/ava-labs/hypersdk/crypto"
 	"github.com/ava-labs/hypersdk/rpc"
 	hutils "github.com/ava-labs/hypersdk/utils"
-	"github.com/bianyuanop/templatevm/auth"
-	"github.com/bianyuanop/templatevm/consts"
-	brpc "github.com/bianyuanop/templatevm/rpc"
-	"github.com/bianyuanop/templatevm/utils"
+	"github.com/bianyuanop/oraclevm/auth"
+	"github.com/bianyuanop/oraclevm/consts"
+	brpc "github.com/bianyuanop/oraclevm/rpc"
+	"github.com/bianyuanop/oraclevm/utils"
 )
 
 var _ cli.Controller = (*Controller)(nil)

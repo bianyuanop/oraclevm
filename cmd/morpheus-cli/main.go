@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/ava-labs/hypersdk/utils"
-	"github.com/bianyuanop/templatevm/cmd/morpheus-cli/cmd"
+	"github.com/bianyuanop/oraclevm/cmd/morpheus-cli/cmd"
 )
 
 func main() {

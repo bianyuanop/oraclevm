@@ -13,11 +13,11 @@ import (
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/rpc"
 	"github.com/ava-labs/hypersdk/utils"
-	"github.com/bianyuanop/templatevm/actions"
-	"github.com/bianyuanop/templatevm/auth"
-	"github.com/bianyuanop/templatevm/consts"
-	brpc "github.com/bianyuanop/templatevm/rpc"
-	tutils "github.com/bianyuanop/templatevm/utils"
+	"github.com/bianyuanop/oraclevm/actions"
+	"github.com/bianyuanop/oraclevm/auth"
+	"github.com/bianyuanop/oraclevm/consts"
+	brpc "github.com/bianyuanop/oraclevm/rpc"
+	tutils "github.com/bianyuanop/oraclevm/utils"
 )
 
 // TODO: use websockets

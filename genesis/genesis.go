@@ -14,9 +14,9 @@ import (
 	"github.com/ava-labs/hypersdk/chain"
 	hconsts "github.com/ava-labs/hypersdk/consts"
 	"github.com/ava-labs/hypersdk/vm"
-	"github.com/bianyuanop/templatevm/consts"
-	"github.com/bianyuanop/templatevm/storage"
-	"github.com/bianyuanop/templatevm/utils"
+	"github.com/bianyuanop/oraclevm/consts"
+	"github.com/bianyuanop/oraclevm/storage"
+	"github.com/bianyuanop/oraclevm/utils"
 )
 
 var _ vm.Genesis = (*Genesis)(nil)

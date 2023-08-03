@@ -9,9 +9,9 @@ import (
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
 
-	"github.com/bianyuanop/templatevm/actions"
-	"github.com/bianyuanop/templatevm/auth"
-	"github.com/bianyuanop/templatevm/consts"
+	"github.com/bianyuanop/oraclevm/actions"
+	"github.com/bianyuanop/oraclevm/auth"
+	"github.com/bianyuanop/oraclevm/consts"
 )
 
 // Setup types

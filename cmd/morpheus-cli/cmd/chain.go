@@ -10,7 +10,7 @@ import (
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/spf13/cobra"
 
-	brpc "github.com/bianyuanop/templatevm/rpc"
+	brpc "github.com/bianyuanop/oraclevm/rpc"
 )
 
 var chainCmd = &cobra.Command{
