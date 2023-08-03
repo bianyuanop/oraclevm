@@ -1,0 +1,29 @@
+name: Template Instantiate
+on: create
+jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    permissions: 
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+          fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+
+      # rename `bianyuanop/templatevm` to `<your-name>/<your-instance-name>`
+      - name: Find and Repalce
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: 'bianyuanop/templatevm'
+          replace: ${{ github.repository }}
+          exclude: '.github/**'
+
+      - name: Commit & Push changes
+        if: github.repository != 'bianyuanop/templatevm'
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+            
