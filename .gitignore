@@ -1,2 +1,4 @@
 build
 .morpheus-cli
+main.log
+e2e.test
