@@ -5,5 +5,6 @@ package actions
 
 // Note: Registry will error during initialization if a duplicate ID is assigned. We explicitly assign IDs to avoid accidental remapping.
 const (
-	transferID uint8 = 0
+	transferID     uint8 = 0
+	uploadEntityID uint8 = 1
 )

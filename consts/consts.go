@@ -17,6 +17,11 @@ const (
 	Symbol = "RED"
 )
 
+const (
+	// length in bytes -> 500KB
+	PayloadMaxLen = 1024 * 500
+)
+
 var ID ids.ID
 
 func init() {

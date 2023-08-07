@@ -18,6 +18,8 @@ import (
 	"github.com/ava-labs/hypersdk/crypto"
 
 	"github.com/bianyuanop/oraclevm/utils"
+
+	myconsts "github.com/bianyuanop/oraclevm/consts"
 )
 
 type ReadState func(context.Context, [][]byte) ([][]byte, []error)
@@ -40,6 +42,11 @@ const (
 	balancePrefix      = 0x0
 	incomingWarpPrefix = 0x1
 	outgoingWarpPrefix = 0x2
+
+	// store entity uploading history
+	entityPrefix = 0x3
+	// store collection aggregation history
+	entityCollectionPrefix = 0x4
 )
 
 var (
@@ -248,4 +255,66 @@ func OutgoingWarpKeyPrefix(txID ids.ID) (k []byte) {
 	k[0] = outgoingWarpPrefix
 	copy(k[1:], txID[:])
 	return k
+}
+
+// [entityPrefix] + [entityType] + [entityIndex]
+func PrefixEntityKey(entityType uint64, entityIndex uint64) (k []byte) {
+	k = make([]byte, 1+consts.Uint64Len*2)
+	k[0] = entityPrefix
+	binary.BigEndian.PutUint64(k[1:], entityType)
+	binary.BigEndian.PutUint64(k[1+consts.Uint64Len:], entityIndex)
+
+	return
+}
+
+func StoreEntity(
+	ctx context.Context,
+	db chain.Database,
+	entityType uint64,
+	entityIndex uint64,
+	tick uint64,
+	publisher crypto.PublicKey,
+	payload []byte,
+) error {
+	k := PrefixEntityKey(entityType, entityIndex)
+	v := make([]byte, crypto.PublicKeyLen+consts.Uint64Len+myconsts.PayloadMaxLen)
+
+	binary.BigEndian.PutUint64(v, tick)
+	copy(v[consts.Uint64Len:], publisher[:])
+	copy(v[consts.Uint64Len+crypto.PublicKeyLen:], payload[:])
+
+	return db.Insert(ctx, k, v)
+}
+
+func GetEntity(
+	ctx context.Context,
+	db chain.Database,
+	entityType uint64,
+	entityIndex uint64,
+) (
+	bool, // exists
+	uint64, // tick
+	crypto.PublicKey, // publisher
+	[]byte, // payload
+	error,
+) {
+	k := PrefixEntityKey(entityType, entityIndex)
+
+	v, err := db.GetValue(ctx, k)
+
+	if errors.Is(err, database.ErrNotFound) {
+		return false, 0, crypto.EmptyPublicKey, make([]byte, 0), nil
+	}
+
+	if err != nil {
+		return false, 0, crypto.EmptyPublicKey, make([]byte, 0), err
+	}
+
+	tick := binary.BigEndian.Uint64(v)
+	var publisher crypto.PublicKey
+	copy(publisher[:], v[consts.Uint64Len:consts.Uint64Len+crypto.PublicKeyLen])
+	payload := make([]byte, myconsts.PayloadMaxLen)
+	copy(payload, v[consts.Uint64Len+crypto.PublicKeyLen:])
+
+	return true, tick, publisher, payload, nil
 }

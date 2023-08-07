@@ -1,7 +1,6 @@
 package oracle
 
 import (
-	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/hypersdk/crypto"
 )
 
@@ -11,19 +10,30 @@ const (
 )
 
 type Entity struct {
-	ID        ids.ID `json:"id"`
 	Publisher string `json:"string"`
 	Tick      uint64 `json:"tick"`
 
-	EntityType string `json:"type"`
-	Payload    []byte `json:"payload"`
+	Payload []byte `json:"payload"`
 
-	_type     uint64
 	publisher crypto.PublicKey
+}
+
+// TODO: do we need lock?
+type EntityCollecton struct {
+	MinTick uint64
+	MaxTick uint64
+
+	EntityID   uint64
+	EntityType string
+
+	// Stock Index -> FIFO queue
+	Entities map[uint64][]*Entity
+	_type    uint64
 }
 
 type Oracle struct {
 	c Controller
 
-	oracles map[uint64][]Entity
+	// _type -> EntityCollection
+	oracles map[uint64]*EntityCollecton
 }
