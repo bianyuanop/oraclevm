@@ -4,3 +4,4 @@
 package actions
 
 var OutputValueZero = []byte("value is zero")
+var PayloadSizeTooLarge = []byte("payload size too large")

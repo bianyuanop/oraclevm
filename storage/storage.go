@@ -272,14 +272,14 @@ func StoreEntity(
 	db chain.Database,
 	entityType uint64,
 	entityIndex uint64,
-	tick uint64,
+	tick int64,
 	publisher crypto.PublicKey,
 	payload []byte,
 ) error {
 	k := PrefixEntityKey(entityType, entityIndex)
 	v := make([]byte, crypto.PublicKeyLen+consts.Uint64Len+myconsts.PayloadMaxLen)
 
-	binary.BigEndian.PutUint64(v, tick)
+	binary.BigEndian.PutUint64(v, uint64(tick))
 	copy(v[consts.Uint64Len:], publisher[:])
 	copy(v[consts.Uint64Len+crypto.PublicKeyLen:], payload[:])
 
@@ -293,7 +293,7 @@ func GetEntity(
 	entityIndex uint64,
 ) (
 	bool, // exists
-	uint64, // tick
+	int64, // tick
 	crypto.PublicKey, // publisher
 	[]byte, // payload
 	error,
@@ -316,5 +316,5 @@ func GetEntity(
 	payload := make([]byte, myconsts.PayloadMaxLen)
 	copy(payload, v[consts.Uint64Len+crypto.PublicKeyLen:])
 
-	return true, tick, publisher, payload, nil
+	return true, int64(tick), publisher, payload, nil
 }

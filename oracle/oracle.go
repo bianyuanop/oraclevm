@@ -31,6 +31,10 @@ type EntityCollecton struct {
 	_type    uint64
 }
 
+type Aggregatible interface {
+	aggregate() Entity
+}
+
 type Oracle struct {
 	c Controller
 
