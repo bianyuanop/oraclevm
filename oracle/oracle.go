@@ -1,9 +1,5 @@
 package oracle
 
-import (
-	"github.com/ava-labs/hypersdk/crypto"
-)
-
 const (
 	StockID = 0
 	SportID = iota
@@ -22,14 +18,29 @@ func EntityIDToTypeString(id uint64) (res string) {
 	return
 }
 
-type Entity struct {
-	Publisher string `json:"string"`
-	Tick      int64  `json:"tick"`
+// type Entity struct {
+// 	Publisher string `json:"string"`
+// 	Tick      int64  `json:"tick"`
 
-	inner Aggregatable
+// 	inner Aggregatable
 
-	publisher crypto.PublicKey
+// 	publisher crypto.PublicKey
+// }
+
+type Entity interface {
+	Publisher() string
+	Tick() int64
 }
+
+type EntityAggregator interface {
+	Result() Entity
+	MergeOne(Entity)
+	RemoveOne(Entity)
+}
+
+// type Aggregatable interface {
+// 	Aggregate([]Entity) (Entity, error)
+// }
 
 // TODO: do we need lock?
 type EntityCollecton struct {
@@ -39,9 +50,11 @@ type EntityCollecton struct {
 	EntityID   uint64
 	EntityType string
 
-	// Stock Index -> FIFO queue
-	Entities map[uint64][]*Entity
-	_type    uint64
+	// FIFO queue
+	Entities []Entity
+
+	aggregator EntityAggregator
+	_type      uint64
 }
 
 func NewEntityCollection(t int64, id uint64, _type uint64) (ec *EntityCollecton) {
@@ -52,7 +65,14 @@ func NewEntityCollection(t int64, id uint64, _type uint64) (ec *EntityCollecton)
 	ec.MinTick = t
 
 	ec.EntityType = EntityIDToTypeString(_type)
-	ec.Entities = make(map[uint64][]*Entity)
+	ec.Entities = make([]Entity, 0)
+
+	// switch _type {
+	// case 0:
+	// 	ec.aggregator = StockAggregator
+	// }
+
+	ec.aggregator = nil
 
 	return
 }
@@ -60,10 +80,6 @@ func NewEntityCollection(t int64, id uint64, _type uint64) (ec *EntityCollecton)
 // func (ec *EntityCollecton) Insert(id uint64, entity *Entity) (bool, error) {
 // 	ec.Entities[id]
 // }
-
-type Aggregatable interface {
-	aggregate([]*Aggregatable) Aggregatable
-}
 
 type Oracle struct {
 	c Controller
