@@ -9,12 +9,12 @@ import (
 )
 
 func TestStockAggregate(t *testing.T) {
-	collection := oracle.NewEntityCollection(time.Now().Unix(), 0, 0)
+	stockName := "Stock-1"
+	collection := oracle.NewEntityCollection(time.Now().Unix(), 0, 0, stockName)
 
 	n := 10
 	entities := make([]oracle.Entity, n)
 	publisher := crypto.EmptyPublicKey
-	stockName := "Stock-1"
 
 	// 1000, 2000, ..., 10000
 	for i := 1; i <= n; i++ {

@@ -2,6 +2,7 @@ package oracle
 
 import (
 	"fmt"
+	"sort"
 )
 
 const (
@@ -27,15 +28,6 @@ func EntityName(id uint64, _type uint64) (res string) {
 
 	return
 }
-
-// type Entity struct {
-// 	Publisher string `json:"string"`
-// 	Tick      int64  `json:"tick"`
-
-// 	inner Aggregatable
-
-// 	publisher crypto.PublicKey
-// }
 
 type Entity interface {
 	Publisher() string
@@ -71,6 +63,8 @@ type EntityCollecton struct {
 
 	EntityID   uint64
 	EntityType string
+	// e.g. stock ticker name
+	EntityName string
 
 	// FIFO queue
 	Entities []Entity
@@ -79,19 +73,20 @@ type EntityCollecton struct {
 	_type      uint64
 }
 
-func NewEntityCollection(t int64, id uint64, _type uint64) (ec *EntityCollecton) {
+func NewEntityCollection(t int64, id uint64, _type uint64, name string) (ec *EntityCollecton) {
 	ec = new(EntityCollecton)
 	ec._type = _type
 	ec.EntityID = id
 	ec.MaxTick = t
 	ec.MinTick = t
+	ec.EntityName = name
 
 	ec.EntityType = EntityIDToTypeString(_type)
 	ec.Entities = make([]Entity, 0)
 
 	switch _type {
 	case 0:
-		ec.aggregator = NewStockAggregator(EntityName(id, _type))
+		ec.aggregator = NewStockAggregator(name)
 	default:
 		ec.aggregator = NewDefaultAggregator()
 	}
@@ -130,9 +125,21 @@ func (ec *EntityCollecton) RemoveMany(count int) {
 	}
 }
 
-// func (ec *EntityCollecton) Insert(id uint64, entity *Entity) (bool, error) {
-// 	ec.Entities[id]
-// }
+func (ec *EntityCollecton) RemoveBeforeTick(t int64) {
+	var x Entity
+	for {
+		if len(ec.Entities) == 0 {
+			break
+		}
+
+		x, ec.Entities = ec.Entities[0], ec.Entities[1:]
+		ec.aggregator.RemoveOne(x)
+
+		if x.Tick() >= t {
+			break
+		}
+	}
+}
 
 type Oracle struct {
 	c Controller
@@ -140,4 +147,35 @@ type Oracle struct {
 	// _type -> EntityCollection
 	oracles map[uint64]*EntityCollecton
 	counter uint64
+}
+
+func NewOracle(c Controller, t int64, trackedStocks []string) *Oracle {
+	res := new(Oracle)
+
+	res.c = c
+	res.oracles = make(map[uint64]*EntityCollecton)
+	res.counter = 0
+
+	sort.Strings(trackedStocks)
+
+	res.counter = 0
+
+	for _, ticker := range trackedStocks {
+		res.oracles[res.counter] = NewEntityCollection(t, res.counter, StockID, ticker)
+
+		res.counter += 1
+	}
+
+	return res
+}
+
+func (o *Oracle) InsertEntity(e *Entity) error {
+	return nil
+}
+
+func (o *Oracle) GetAggregatedResult(id uint64) (Entity, error) {
+	if id > o.counter {
+		return nil, ErrOutOfEntityCollectionRange
+	}
+	return o.oracles[id].Result()
 }

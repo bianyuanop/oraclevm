@@ -6,6 +6,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"time"
 
 	ametrics "github.com/ava-labs/avalanchego/api/metrics"
 	"github.com/ava-labs/avalanchego/database"
@@ -23,6 +24,7 @@ import (
 	"github.com/bianyuanop/oraclevm/config"
 	"github.com/bianyuanop/oraclevm/consts"
 	"github.com/bianyuanop/oraclevm/genesis"
+	"github.com/bianyuanop/oraclevm/oracle"
 	"github.com/bianyuanop/oraclevm/rpc"
 	"github.com/bianyuanop/oraclevm/storage"
 	"github.com/bianyuanop/oraclevm/version"
@@ -41,6 +43,8 @@ type Controller struct {
 	metrics *metrics
 
 	metaDB database.Database
+
+	oracle *oracle.Oracle
 }
 
 func New() *vm.VM {
@@ -130,6 +134,10 @@ func (c *Controller) Initialize(
 		gcfg := gossiper.DefaultProposerConfig()
 		gossip = gossiper.NewProposer(inner, gcfg)
 	}
+
+	// TODO: not sure if `time.Now().Unix()` is safe to be used here
+	c.oracle = oracle.NewOracle(c, time.Now().Unix(), c.config.TrackedStocks)
+
 	return c.config, c.genesis, build, gossip, blockDB, stateDB, apis, consts.ActionRegistry, consts.AuthRegistry, nil
 }
 

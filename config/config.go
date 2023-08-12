@@ -57,6 +57,8 @@ type Config struct {
 	// State Sync
 	StateSyncServerDelay time.Duration `json:"stateSyncServerDelay"` // for testing
 
+	TrackedStocks []string `json:"trackedStocks"`
+
 	loaded             bool
 	nodeID             ids.NodeID
 	parsedExemptPayers [][]byte
