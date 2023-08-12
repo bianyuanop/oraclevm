@@ -38,16 +38,17 @@ type StockAggregator struct {
 	count  uint64
 }
 
-func NewStockAggregator() *StockAggregator {
+func NewStockAggregator(name string) *StockAggregator {
 	res := new(StockAggregator)
 	res.count = 0
 	res.sum = 0
-	// res.ticker =
+	// empty at first
+	res.ticker = ""
 
 	return res
 }
 
-func (sa *StockAggregator) Result() (*Stock, error) {
+func (sa *StockAggregator) Result() (Entity, error) {
 	res := new(Stock)
 	res.Ticker = sa.ticker
 	res.publisher = crypto.EmptyPublicKey
@@ -61,12 +62,25 @@ func (sa *StockAggregator) Result() (*Stock, error) {
 	}
 }
 
-func (sa *StockAggregator) MergeOne(s *Stock) {
-	sa.sum += s.Price
+func (sa *StockAggregator) MergeOne(s Entity) {
+
+	stk, ok := s.(*Stock)
+	if !ok {
+		return
+	}
+
+	if sa.ticker == "" {
+		sa.ticker = stk.Ticker
+	}
+	sa.sum += stk.Price
 	sa.count += 1
 }
 
-func (sa *StockAggregator) RemoveOne(s *Stock) {
-	sa.sum -= s.Price
+func (sa *StockAggregator) RemoveOne(s Entity) {
+	stk, ok := s.(*Stock)
+	if !ok {
+		return
+	}
+	sa.sum -= stk.Price
 	sa.count -= 1
 }

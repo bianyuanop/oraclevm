@@ -1,5 +1,9 @@
 package oracle
 
+import (
+	"fmt"
+)
+
 const (
 	StockID = 0
 	SportID = iota
@@ -14,6 +18,12 @@ func EntityIDToTypeString(id uint64) (res string) {
 	default:
 		res = "Unknown"
 	}
+
+	return
+}
+
+func EntityName(id uint64, _type uint64) (res string) {
+	res = fmt.Sprintf("%d-%s", id, EntityIDToTypeString(_type))
 
 	return
 }
@@ -33,10 +43,22 @@ type Entity interface {
 }
 
 type EntityAggregator interface {
-	Result() Entity
+	Result() (Entity, error)
 	MergeOne(Entity)
 	RemoveOne(Entity)
 }
+
+type DefaultAggregator struct{}
+
+func NewDefaultAggregator() *DefaultAggregator {
+	return &DefaultAggregator{}
+}
+
+func (da *DefaultAggregator) Result() (Entity, error) {
+	return nil, nil
+}
+func (da *DefaultAggregator) MergeOne(Entity)  {}
+func (da *DefaultAggregator) RemoveOne(Entity) {}
 
 // type Aggregatable interface {
 // 	Aggregate([]Entity) (Entity, error)
@@ -67,14 +89,45 @@ func NewEntityCollection(t int64, id uint64, _type uint64) (ec *EntityCollecton)
 	ec.EntityType = EntityIDToTypeString(_type)
 	ec.Entities = make([]Entity, 0)
 
-	// switch _type {
-	// case 0:
-	// 	ec.aggregator = StockAggregator
-	// }
-
-	ec.aggregator = nil
+	switch _type {
+	case 0:
+		ec.aggregator = NewStockAggregator(EntityName(id, _type))
+	default:
+		ec.aggregator = NewDefaultAggregator()
+	}
 
 	return
+}
+
+func (ec *EntityCollecton) Result() (Entity, error) {
+	return ec.aggregator.Result()
+}
+
+func (ec *EntityCollecton) MergeMany(es []Entity) {
+	ec.Entities = append(ec.Entities, es...)
+
+	for _, e := range es {
+		ec.aggregator.MergeOne(e)
+	}
+}
+
+func (ec *EntityCollecton) RemoveMany(count int) {
+	length := len(ec.Entities)
+
+	var numRemove int
+
+	if length > count {
+		numRemove = count
+	} else {
+		numRemove = length
+	}
+
+	var x Entity
+
+	for i := 0; i < numRemove; i++ {
+		x, ec.Entities = ec.Entities[0], ec.Entities[1:]
+		ec.aggregator.RemoveOne(x)
+	}
 }
 
 // func (ec *EntityCollecton) Insert(id uint64, entity *Entity) (bool, error) {
@@ -86,4 +139,5 @@ type Oracle struct {
 
 	// _type -> EntityCollection
 	oracles map[uint64]*EntityCollecton
+	counter uint64
 }
