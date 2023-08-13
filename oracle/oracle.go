@@ -36,6 +36,14 @@ type EntityWithMeta struct {
 	Entity Entity `json:"entity"`
 }
 
+func NewEntityWithMeta(_type uint64, id uint64, entity Entity) *EntityWithMeta {
+	return &EntityWithMeta{
+		Type:   _type,
+		ID:     id,
+		Entity: entity,
+	}
+}
+
 func (ewm *EntityWithMeta) Marshal() []byte {
 	res, _ := json.Marshal(ewm)
 
@@ -127,6 +135,17 @@ type EntityCollecton struct {
 	_type      uint64
 }
 
+func AggregatorFactory(_type uint64, name string) (aggregator EntityAggregator) {
+	switch _type {
+	case 0:
+		aggregator = NewStockAggregator(name)
+	default:
+		aggregator = NewDefaultAggregator()
+	}
+
+	return
+}
+
 func NewEntityCollection(t int64, id uint64, _type uint64, name string) (ec *EntityCollecton) {
 	ec = new(EntityCollecton)
 	ec._type = _type
@@ -138,12 +157,7 @@ func NewEntityCollection(t int64, id uint64, _type uint64, name string) (ec *Ent
 	ec.EntityType = EntityIDToTypeString(_type)
 	ec.Entities = make([]Entity, 0)
 
-	switch _type {
-	case 0:
-		ec.aggregator = NewStockAggregator(name)
-	default:
-		ec.aggregator = NewDefaultAggregator()
-	}
+	ec.aggregator = AggregatorFactory(_type, name)
 
 	return
 }
@@ -195,6 +209,11 @@ func (ec *EntityCollecton) RemoveBeforeTick(t int64) {
 	}
 }
 
+func (ec *EntityCollecton) Clear() {
+	ec.Entities = make([]Entity, 0)
+	ec.aggregator = AggregatorFactory(ec._type, ec.EntityName)
+}
+
 type Oracle struct {
 	c Controller
 
@@ -223,7 +242,24 @@ func NewOracle(c Controller, t int64, trackedStocks []string) *Oracle {
 	return res
 }
 
-func (o *Oracle) InsertEntity(e *Entity) error {
+func (o *Oracle) ClearEntityCollection() {
+	var i uint64
+	for i = 0; i < o.counter; i++ {
+		o.oracles[i].Clear()
+	}
+}
+
+func (o *Oracle) InsertEntity(id uint64, _type uint64, e Entity) error {
+	if id >= o.counter {
+		return ErrOutOfEntityCollectionRange
+	}
+
+	if _type != o.oracles[id]._type {
+		return ErrUnexpectedEntityType
+	}
+
+	o.oracles[id].MergeMany([]Entity{e})
+
 	return nil
 }
 

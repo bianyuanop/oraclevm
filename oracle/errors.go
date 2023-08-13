@@ -9,4 +9,5 @@ var (
 	ErrOutOfEntityCollectionRange = errors.New("Entity collection Id out of range")
 	ErrNotSupportedEntity         = errors.New("Such entity is not supported")
 	ErrMarshalEntityFailed        = errors.New("Marshal entity failed")
+	ErrUnexpectedEntityType       = errors.New("Unexpected entity type")
 )

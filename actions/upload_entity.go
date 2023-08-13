@@ -49,7 +49,7 @@ func (ue *UploadEntity) Execute(
 	}
 
 	// try marshal payload
-	output, err := oracle.UnmarshalEntity(ue.EntityType, ue.Payload)
+	entity, err := oracle.UnmarshalEntity(ue.EntityType, ue.Payload)
 	if err != nil {
 		return &chain.Result{Success: false, Units: unitsUsed, Output: utils.ErrBytes(err)}, err
 	}
@@ -57,6 +57,8 @@ func (ue *UploadEntity) Execute(
 	if err := storage.StoreEntity(ctx, db, ue.EntityType, ue.EntityIndex, t, actor, ue.Payload); err != nil {
 		return &chain.Result{Success: false, Units: unitsUsed, Output: utils.ErrBytes(err)}, err
 	}
+
+	output := oracle.NewEntityWithMeta(ue.EntityType, ue.EntityIndex, entity)
 
 	return &chain.Result{Success: true, Units: unitsUsed, Output: output.Marshal()}, nil
 }

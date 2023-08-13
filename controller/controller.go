@@ -174,8 +174,13 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 			switch tx.Action.(type) { //nolint:gocritic
 			case *actions.Transfer:
 				c.metrics.transfer.Inc()
-				// case *actions.UploadEntity:
-				// 	entity, err := oracle.UnmarshalEntity(tx.)
+			case *actions.UploadEntity:
+				entityWithMeta, err := oracle.UnmarshalEntityWithMeta(result.Output)
+				if err != nil {
+					return err
+				}
+
+				c.oracle.InsertEntity(entityWithMeta.ID, entityWithMeta.Type, entityWithMeta.Entity)
 			}
 		}
 	}

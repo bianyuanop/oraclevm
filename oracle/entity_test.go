@@ -32,5 +32,4 @@ func TestEntityMetaMarshal(t *testing.T) {
 	if s1.Price != s2.Price && s1.Ticker != s2.Ticker && s1.Tick() != s2.Tick() && s1.Publisher() != s2.Publisher() {
 		t.Errorf("value converted not equal: %+v is not equal to %+v\n", s1, s2)
 	}
-
 }
