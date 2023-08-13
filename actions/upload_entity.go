@@ -11,6 +11,7 @@ import (
 
 	"github.com/bianyuanop/oraclevm/auth"
 	"github.com/bianyuanop/oraclevm/consts"
+	"github.com/bianyuanop/oraclevm/oracle"
 	"github.com/bianyuanop/oraclevm/storage"
 )
 
@@ -21,7 +22,7 @@ type UploadEntity struct {
 	EntityIndex uint64 `json:"entity_index"`
 }
 
-func (*UploadEntity) GetTypeId() uint8 {
+func (*UploadEntity) GetTypeID() uint8 {
 	return uploadEntityID
 }
 
@@ -47,11 +48,17 @@ func (ue *UploadEntity) Execute(
 		return &chain.Result{Success: false, Units: unitsUsed, Output: PayloadSizeTooLarge}, nil
 	}
 
+	// try marshal payload
+	output, err := oracle.UnmarshalEntity(ue.EntityType, ue.Payload)
+	if err != nil {
+		return &chain.Result{Success: false, Units: unitsUsed, Output: utils.ErrBytes(err)}, err
+	}
+
 	if err := storage.StoreEntity(ctx, db, ue.EntityType, ue.EntityIndex, t, actor, ue.Payload); err != nil {
 		return &chain.Result{Success: false, Units: unitsUsed, Output: utils.ErrBytes(err)}, err
 	}
 
-	return &chain.Result{Success: true, Units: unitsUsed}, nil
+	return &chain.Result{Success: true, Units: unitsUsed, Output: output.Marshal()}, nil
 }
 
 func (ue *UploadEntity) ValidRange(_ chain.Rules) (int64, int64) {

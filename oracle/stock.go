@@ -1,14 +1,15 @@
 package oracle
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/ava-labs/hypersdk/crypto"
 )
 
 type Stock struct {
-	Ticker string
-	Price  uint64
+	Ticker string `json:"ticker"`
+	Price  uint64 `json:"price"`
 
 	publisher crypto.PublicKey
 	tick      int64
@@ -83,4 +84,21 @@ func (sa *StockAggregator) RemoveOne(s Entity) {
 	}
 	sa.sum -= stk.Price
 	sa.count -= 1
+}
+
+func (s *Stock) Marshal() []byte {
+	// should always success
+	res, _ := json.Marshal(s)
+
+	return res
+}
+
+func UnmarshalStock(payload []byte) (*Stock, error) {
+	var res *Stock = &Stock{}
+	err := json.Unmarshal(payload, res)
+
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

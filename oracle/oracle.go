@@ -1,7 +1,9 @@
 package oracle
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"sort"
 )
 
@@ -13,9 +15,8 @@ const (
 func EntityIDToTypeString(id uint64) (res string) {
 	switch id {
 	case 0:
-		res = "Stock"
-	case 1:
-		res = "Sports"
+		// should return `*oracle.Stock`
+		res = reflect.TypeOf(&Stock{}).String()
 	default:
 		res = "Unknown"
 	}
@@ -29,10 +30,63 @@ func EntityName(id uint64, _type uint64) (res string) {
 	return
 }
 
+type EntityWithMeta struct {
+	Type   uint64 `json:"type"`
+	ID     uint64 `json:"id"`
+	Entity Entity `json:"entity"`
+}
+
+func (ewm *EntityWithMeta) Marshal() []byte {
+	res, _ := json.Marshal(ewm)
+
+	return res
+}
+
+func UnmarshalEntityWithMeta(payload []byte) (*EntityWithMeta, error) {
+	var res *EntityWithMeta = &EntityWithMeta{}
+
+	// same with `EntityWIthMeta` except we defer value decoding
+	var data struct {
+		Type   uint64          `json:"type"`
+		ID     uint64          `json:"id"`
+		Entity json.RawMessage `json:"entity"`
+	}
+
+	if err := json.Unmarshal(payload, &data); err != nil {
+		return nil, err
+	}
+
+	res.ID = data.Type
+	res.ID = data.ID
+
+	for _, impl := range entityKnownImplementations {
+		_type := reflect.TypeOf(impl)
+		if _type.String() == EntityIDToTypeString(data.Type) {
+			target := reflect.New(_type)
+			if err := json.Unmarshal(data.Entity, target.Interface()); err != nil {
+				return nil, err
+			}
+
+			res.Entity = target.Elem().Interface().(Entity)
+			break
+		}
+	}
+
+	return res, nil
+}
+
 type Entity interface {
 	Publisher() string
 	Tick() int64
+	Marshal() []byte
 }
+
+// to be used for dynamically unmarshal and marshal EntityWithMeta
+var (
+	entityKnownImplementations = []Entity{
+		&Stock{},
+	}
+)
 
 type EntityAggregator interface {
 	Result() (Entity, error)
@@ -178,4 +232,14 @@ func (o *Oracle) GetAggregatedResult(id uint64) (Entity, error) {
 		return nil, ErrOutOfEntityCollectionRange
 	}
 	return o.oracles[id].Result()
+}
+
+func UnmarshalEntity(_type uint64, payload []byte) (Entity, error) {
+	switch _type {
+	case SportID:
+		s, _ := UnmarshalStock(payload)
+		return Entity(s), ErrMarshalEntityFailed
+	default:
+		return nil, ErrNotSupportedEntity
+	}
 }
