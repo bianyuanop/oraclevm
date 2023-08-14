@@ -18,8 +18,6 @@ import (
 	"github.com/ava-labs/hypersdk/crypto"
 
 	"github.com/bianyuanop/oraclevm/utils"
-
-	myconsts "github.com/bianyuanop/oraclevm/consts"
 )
 
 type ReadState func(context.Context, [][]byte) ([][]byte, []error)
@@ -45,8 +43,8 @@ const (
 
 	// store entity uploading history
 	entityPrefix = 0x3
-	// store collection aggregation history
-	entityCollectionPrefix = 0x4
+	// store entity aggregation result
+	entityAggregationResultPrefix = 0x4
 )
 
 var (
@@ -257,12 +255,42 @@ func OutgoingWarpKeyPrefix(txID ids.ID) (k []byte) {
 	return k
 }
 
-// [entityPrefix] + [entityType] + [entityIndex]
-func PrefixEntityKey(entityType uint64, entityIndex uint64) (k []byte) {
-	k = make([]byte, 1+consts.Uint64Len*2)
+// [entityPrefix] + [txID] + [entityIndex]
+func PrefixEntityKey(txID ids.ID) (k []byte) {
+	k = make([]byte, 1+consts.IDLen)
 	k[0] = entityPrefix
-	binary.BigEndian.PutUint64(k[1:], entityType)
-	binary.BigEndian.PutUint64(k[1+consts.Uint64Len:], entityIndex)
+	copy(k[1:], txID[:])
+
+	return
+}
+
+func PackEntity(entityIndex uint64, entityType uint64, tick int64, publisher crypto.PublicKey, payload []byte) (v []byte) {
+	v = make([]byte, consts.Uint64Len*3+crypto.PublicKeyLen+len(payload))
+
+	binary.BigEndian.PutUint64(v, entityIndex)
+	binary.BigEndian.PutUint64(v[consts.Uint64Len:], entityType)
+	binary.BigEndian.PutUint64(v[consts.Uint64Len*2:], uint64(tick))
+	copy(v[consts.Uint64Len*3:], publisher[:])
+	copy(v[consts.Uint64Len*3+crypto.PublicKeyLen:], payload)
+
+	return
+}
+
+func UnpackEntity(v []byte) (
+	entityIndex uint64,
+	entityType uint64,
+	tick int64,
+	publisher crypto.PublicKey,
+	payload []byte,
+) {
+	entityIndex = binary.BigEndian.Uint64(v)
+	entityType = binary.BigEndian.Uint64(v[consts.Uint64Len:])
+	tick = int64(binary.BigEndian.Uint64(v[consts.Uint64Len*2:]))
+	publisher = crypto.PublicKey(v[consts.Uint64Len*3:])
+
+	payload = make([]byte, len(v)-consts.Uint64Len*3+crypto.PublicKeyLen)
+
+	copy(payload, v[consts.Uint64Len*3+crypto.PublicKeyLen:])
 
 	return
 }
@@ -270,18 +298,15 @@ func PrefixEntityKey(entityType uint64, entityIndex uint64) (k []byte) {
 func StoreEntity(
 	ctx context.Context,
 	db chain.Database,
+	txID ids.ID,
 	entityType uint64,
 	entityIndex uint64,
 	tick int64,
 	publisher crypto.PublicKey,
 	payload []byte,
 ) error {
-	k := PrefixEntityKey(entityType, entityIndex)
-	v := make([]byte, crypto.PublicKeyLen+consts.Uint64Len+myconsts.PayloadMaxLen)
-
-	binary.BigEndian.PutUint64(v, uint64(tick))
-	copy(v[consts.Uint64Len:], publisher[:])
-	copy(v[consts.Uint64Len+crypto.PublicKeyLen:], payload[:])
+	k := PrefixEntityKey(txID)
+	v := PackEntity(entityIndex, entityType, tick, publisher, payload)
 
 	return db.Insert(ctx, k, v)
 }
@@ -289,32 +314,53 @@ func StoreEntity(
 func GetEntity(
 	ctx context.Context,
 	db chain.Database,
-	entityType uint64,
-	entityIndex uint64,
+	txID ids.ID,
 ) (
-	bool, // exists
-	int64, // tick
-	crypto.PublicKey, // publisher
-	[]byte, // payload
-	error,
+	exists bool,
+	tick int64,
+	entityIndex uint64,
+	entityType uint64,
+	publisher crypto.PublicKey,
+	payload []byte,
+	e error,
 ) {
-	k := PrefixEntityKey(entityType, entityIndex)
+	k := PrefixEntityKey(txID)
 
 	v, err := db.GetValue(ctx, k)
 
 	if errors.Is(err, database.ErrNotFound) {
-		return false, 0, crypto.EmptyPublicKey, make([]byte, 0), nil
+		return false, 0, 0, 0, crypto.EmptyPublicKey, make([]byte, 0), nil
 	}
 
 	if err != nil {
-		return false, 0, crypto.EmptyPublicKey, make([]byte, 0), err
+		return false, 0, 0, 0, crypto.EmptyPublicKey, make([]byte, 0), err
 	}
 
-	tick := binary.BigEndian.Uint64(v)
-	var publisher crypto.PublicKey
-	copy(publisher[:], v[consts.Uint64Len:consts.Uint64Len+crypto.PublicKeyLen])
-	payload := make([]byte, myconsts.PayloadMaxLen)
-	copy(payload, v[consts.Uint64Len+crypto.PublicKeyLen:])
+	entityIndex, entityType, tick, publisher, payload = UnpackEntity(v)
 
-	return true, int64(tick), publisher, payload, nil
+	return
+}
+
+func PrefixAggregationResult(tick int64, entityIndex uint64) (k []byte) {
+	k = make([]byte, 1+consts.Uint64Len*2)
+	k[0] = entityAggregationResultPrefix
+	binary.BigEndian.PutUint64(k[1:], uint64(tick))
+	binary.BigEndian.PutUint64(k[1+consts.Uint64Len:], entityIndex)
+
+	return
+}
+
+func StoreAggregationResult(
+	ctx context.Context,
+	db database.KeyValueWriter,
+	entityType uint64,
+	entityIndex uint64,
+	tick int64,
+	payload []byte,
+) error {
+	k := PrefixAggregationResult(tick, entityIndex)
+
+	v := PackEntity(entityIndex, entityType, tick, crypto.EmptyPublicKey, payload)
+
+	return db.Put(k, v)
 }

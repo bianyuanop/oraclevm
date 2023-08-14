@@ -184,6 +184,22 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 			}
 		}
 	}
+
+	// store aggregation result
+	for i := 0; i < int(c.oracle.Counter()); i++ {
+		aggretationResult, err := c.oracle.GetAggregatedResult(uint64(i))
+		if err != nil {
+			continue
+		}
+
+		entityIndex, entityType, err := c.oracle.GetEntityMeta(uint64(i))
+		if err != nil {
+			continue
+		}
+
+		storage.StoreAggregationResult(ctx, batch, entityType, entityIndex, blk.GetTimestamp(), aggretationResult.Marshal())
+	}
+
 	return batch.Write()
 }
 

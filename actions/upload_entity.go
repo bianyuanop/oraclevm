@@ -26,9 +26,9 @@ func (*UploadEntity) GetTypeID() uint8 {
 	return uploadEntityID
 }
 
-func (ue *UploadEntity) StateKeys(rauth chain.Auth, _ ids.ID) [][]byte {
+func (ue *UploadEntity) StateKeys(rauth chain.Auth, txID ids.ID) [][]byte {
 	return [][]byte{
-		storage.PrefixEntityKey(ue.EntityType, ue.EntityIndex),
+		storage.PrefixEntityKey(txID),
 	}
 }
 
@@ -54,7 +54,7 @@ func (ue *UploadEntity) Execute(
 		return &chain.Result{Success: false, Units: unitsUsed, Output: utils.ErrBytes(err)}, err
 	}
 
-	if err := storage.StoreEntity(ctx, db, ue.EntityType, ue.EntityIndex, t, actor, ue.Payload); err != nil {
+	if err := storage.StoreEntity(ctx, db, txID, ue.EntityType, ue.EntityIndex, t, actor, ue.Payload); err != nil {
 		return &chain.Result{Success: false, Units: unitsUsed, Output: utils.ErrBytes(err)}, err
 	}
 

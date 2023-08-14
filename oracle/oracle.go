@@ -263,6 +263,14 @@ func (o *Oracle) InsertEntity(id uint64, _type uint64, e Entity) error {
 	return nil
 }
 
+func (o *Oracle) GetEntityMeta(id uint64) (uint64, uint64, error) {
+	if id > o.counter {
+		return 0, 0, ErrOutOfEntityCollectionRange
+	}
+
+	return o.oracles[id].EntityID, o.oracles[id]._type, nil
+}
+
 func (o *Oracle) GetAggregatedResult(id uint64) (Entity, error) {
 	if id > o.counter {
 		return nil, ErrOutOfEntityCollectionRange
@@ -278,4 +286,8 @@ func UnmarshalEntity(_type uint64, payload []byte) (Entity, error) {
 	default:
 		return nil, ErrNotSupportedEntity
 	}
+}
+
+func (o *Oracle) Counter() uint64 {
+	return o.counter
 }
