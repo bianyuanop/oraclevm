@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+
+	"github.com/bianyuanop/oraclevm/consts"
 )
 
 const (
@@ -214,11 +216,42 @@ func (ec *EntityCollecton) Clear() {
 	ec.aggregator = AggregatorFactory(ec._type, ec.EntityName)
 }
 
+type AggregationHistory struct {
+	History []Entity
+	Length  uint64
+}
+
+func NewAggregationHistory() *AggregationHistory {
+	return &AggregationHistory{
+		History: make([]Entity, consts.HistoryCacheLen),
+		Length:  0,
+	}
+}
+
+func (ah *AggregationHistory) GetHistory(limit uint64) []Entity {
+	if limit > ah.Length {
+		return ah.History
+	}
+
+	return ah.History[consts.HistoryCacheLen-limit:]
+}
+
+func (ah *AggregationHistory) Push(e Entity) {
+	if ah.Length >= consts.HistoryCacheLen {
+		copy(ah.History, ah.History[consts.HistoryPurgeLen:])
+		ah.Length = consts.HistoryCacheLen - consts.HistoryPurgeLen
+	}
+
+	ah.History[ah.Length] = e
+	ah.Length += 1
+}
+
 type Oracle struct {
 	c Controller
 
 	// _type -> EntityCollection
 	oracles map[uint64]*EntityCollecton
+	history map[uint64]*AggregationHistory
 	counter uint64
 }
 
@@ -227,6 +260,7 @@ func NewOracle(c Controller, t int64, trackedStocks []string) *Oracle {
 
 	res.c = c
 	res.oracles = make(map[uint64]*EntityCollecton)
+	res.history = make(map[uint64]*AggregationHistory)
 	res.counter = 0
 
 	sort.Strings(trackedStocks)
@@ -235,6 +269,7 @@ func NewOracle(c Controller, t int64, trackedStocks []string) *Oracle {
 
 	for _, ticker := range trackedStocks {
 		res.oracles[res.counter] = NewEntityCollection(t, res.counter, StockID, ticker)
+		res.history[res.counter] = NewAggregationHistory()
 
 		res.counter += 1
 	}
@@ -245,6 +280,18 @@ func NewOracle(c Controller, t int64, trackedStocks []string) *Oracle {
 func (o *Oracle) ClearEntityCollection() {
 	var i uint64
 	for i = 0; i < o.counter; i++ {
+		o.oracles[i].Clear()
+	}
+}
+
+func (o *Oracle) ClearOracleNSaveHistory() {
+	var i uint64
+	for i = 0; i < o.counter; i++ {
+		agg, err := o.oracles[i].Result()
+		if err != nil {
+			continue
+		}
+		o.history[i].Push(agg)
 		o.oracles[i].Clear()
 	}
 }
@@ -280,7 +327,7 @@ func (o *Oracle) GetAggregatedResult(id uint64) (Entity, error) {
 
 func UnmarshalEntity(_type uint64, payload []byte) (Entity, error) {
 	switch _type {
-	case SportID:
+	case StockID:
 		s, _ := UnmarshalStock(payload)
 		return Entity(s), ErrMarshalEntityFailed
 	default:
@@ -290,4 +337,12 @@ func UnmarshalEntity(_type uint64, payload []byte) (Entity, error) {
 
 func (o *Oracle) Counter() uint64 {
 	return o.counter
+}
+
+func (o *Oracle) GetHistory(entityIndex uint64, limit uint64) ([]Entity, error) {
+	if entityIndex >= o.counter {
+		return make([]Entity, 0), ErrOutOfEntityCollectionRange
+	}
+
+	return o.history[entityIndex].GetHistory(limit), nil
 }

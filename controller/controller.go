@@ -200,6 +200,8 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 		storage.StoreAggregationResult(ctx, batch, entityType, entityIndex, blk.GetTimestamp(), aggretationResult.Marshal())
 	}
 
+	c.oracle.ClearEntityCollection()
+
 	return batch.Write()
 }
 

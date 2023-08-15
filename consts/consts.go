@@ -19,7 +19,9 @@ const (
 
 const (
 	// length in bytes -> 500KB
-	PayloadMaxLen = 1024 * 500
+	PayloadMaxLen   = 1024 * 500
+	HistoryCacheLen = 500
+	HistoryPurgeLen = 200
 )
 
 var ID ids.ID

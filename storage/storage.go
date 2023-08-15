@@ -364,3 +364,22 @@ func StoreAggregationResult(
 
 	return db.Put(k, v)
 }
+
+func GetAggregationResult(
+	ctx context.Context,
+	db database.KeyValueReader,
+	entityIndex uint64,
+	tick int64, // same with block timestamp
+) (entityType uint64, payload []byte, e error) {
+	k := PrefixAggregationResult(tick, entityIndex)
+
+	v, err := db.Get(k)
+
+	if err != nil {
+		return 0, make([]byte, 0), err
+	}
+
+	_, entityType, _, _, payload = UnpackEntity(v)
+
+	return
+}
