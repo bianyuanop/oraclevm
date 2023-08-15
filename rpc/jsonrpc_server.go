@@ -9,6 +9,7 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 
 	"github.com/bianyuanop/oraclevm/genesis"
+	"github.com/bianyuanop/oraclevm/oracle"
 	"github.com/bianyuanop/oraclevm/utils"
 )
 
@@ -78,4 +79,27 @@ func (j *JSONRPCServer) Balance(req *http.Request, args *BalanceArgs, reply *Bal
 	}
 	reply.Amount = balance
 	return err
+}
+
+type HistoryArgs struct {
+	EntityIndex uint64 `json:"index"`
+	Limit       uint64 `json:"limit"`
+}
+
+type HistoryReply struct {
+	History []oracle.Entity `json:"history"`
+}
+
+func (j *JSONRPCServer) History(req *http.Request, args *HistoryArgs, reply *HistoryReply) error {
+	_, span := j.c.Tracer().Start(req.Context(), "Server.History")
+	defer span.End()
+
+	history, err := j.c.GetHistoryFromState(args.EntityIndex, args.Limit)
+	if err != nil {
+		return err
+	}
+
+	reply.History = history
+
+	return nil
 }

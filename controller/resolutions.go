@@ -11,6 +11,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/hypersdk/crypto"
 	"github.com/bianyuanop/oraclevm/genesis"
+	"github.com/bianyuanop/oraclevm/oracle"
 	"github.com/bianyuanop/oraclevm/storage"
 )
 
@@ -38,4 +39,8 @@ func (c *Controller) GetBalanceFromState(
 	pk crypto.PublicKey,
 ) (uint64, error) {
 	return storage.GetBalanceFromState(ctx, c.inner.ReadState, pk)
+}
+
+func (c *Controller) GetHistoryFromState(entityIndex uint64, limit uint64) ([]oracle.Entity, error) {
+	return c.oracle.GetHistory(entityIndex, limit)
 }

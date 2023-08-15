@@ -10,6 +10,7 @@ import (
 	"github.com/ava-labs/avalanchego/trace"
 	"github.com/ava-labs/hypersdk/crypto"
 	"github.com/bianyuanop/oraclevm/genesis"
+	"github.com/bianyuanop/oraclevm/oracle"
 )
 
 type Controller interface {
@@ -17,4 +18,5 @@ type Controller interface {
 	Tracer() trace.Tracer
 	GetTransaction(context.Context, ids.ID) (bool, int64, bool, uint64, error)
 	GetBalanceFromState(context.Context, crypto.PublicKey) (uint64, error)
+	GetHistoryFromState(uint64, uint64) ([]oracle.Entity, error)
 }
