@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
 	hconsts "github.com/ava-labs/hypersdk/consts"
@@ -72,6 +73,16 @@ func (ue *UploadEntity) Marshal(p *codec.Packer) {
 	p.PackUint64(ue.EntityIndex)
 
 	p.PackBytes(ue.Payload)
+}
+
+func UnmarshalUploadEntity(p *codec.Packer, _ *warp.Message) (chain.Action, error) {
+	var upload UploadEntity
+
+	upload.EntityType = p.UnpackUint64(true)
+	upload.EntityIndex = p.UnpackUint64(true)
+	p.UnpackBytes(consts.PayloadMaxLen, true, &upload.Payload)
+
+	return &upload, p.Err()
 }
 
 func (ue *UploadEntity) MaxUnits(chain.Rules) uint64 {
