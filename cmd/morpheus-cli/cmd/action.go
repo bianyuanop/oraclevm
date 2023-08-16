@@ -59,3 +59,38 @@ var transferCmd = &cobra.Command{
 		return err
 	},
 }
+
+var uploadCmd = &cobra.Command{
+	Use: "upload_entity",
+	RunE: func(*cobra.Command, []string) error {
+		ctx := context.Background()
+		_, _, factory, cli, bcli, err := handler.DefaultActor()
+		if err != nil {
+			return err
+		}
+
+		entityIndex, err := handler.Root().PromptChoice("index", 1)
+		if err != nil {
+			return err
+		}
+
+		entityType, err := handler.Root().PromptChoice("type", 1)
+		if err != nil {
+			return err
+		}
+
+		payload, err := handler.Root().PromptString("payload", 0, 500)
+
+		if err != nil {
+			return err
+		}
+
+		_, _, err = sendAndWait(ctx, nil, &actions.UploadEntity{
+			EntityIndex: uint64(entityIndex),
+			EntityType:  uint64(entityType),
+			Payload:     []byte(payload),
+		}, cli, bcli, factory, true)
+
+		return err
+	},
+}

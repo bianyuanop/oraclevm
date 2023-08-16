@@ -141,6 +141,7 @@ func init() {
 	// actions
 	actionCmd.AddCommand(
 		transferCmd,
+		uploadCmd,
 	)
 
 	// spam
