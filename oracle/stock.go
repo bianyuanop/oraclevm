@@ -94,11 +94,11 @@ func (s *Stock) Marshal() []byte {
 }
 
 func UnmarshalStock(payload []byte) (*Stock, error) {
-	var res *Stock = &Stock{}
-	err := json.Unmarshal(payload, res)
+	var s Stock
+	err := json.Unmarshal(payload, &s)
 
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+	return &s, nil
 }

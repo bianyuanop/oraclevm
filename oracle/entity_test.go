@@ -33,3 +33,27 @@ func TestEntityMetaMarshal(t *testing.T) {
 		t.Errorf("value converted not equal: %+v is not equal to %+v\n", s1, s2)
 	}
 }
+
+func TestUnmarshalEntity(t *testing.T) {
+	payload := `{ "ticker": "Apple", "price": 1999 }`
+	sType := oracle.StockID
+
+	_, err := oracle.UnmarshalEntity(uint64(sType), []byte(payload))
+	if err != nil {
+		t.Errorf("Unmarshal entity failed: %+v\n", err)
+	}
+
+	// t.Errorf("%+v\n", entity)
+}
+
+func TestMarshalEntityMeta(t *testing.T) {
+	payload := `{ "ticker": "Apple", "price": 1999 }`
+	sType := oracle.StockID
+
+	entity, err := oracle.UnmarshalEntity(uint64(sType), []byte(payload))
+	if err != nil {
+		t.Errorf("Unmarshal entity failed: %+v\n", err)
+	}
+
+	oracle.NewEntityWithMeta(uint64(sType), 0, entity)
+}

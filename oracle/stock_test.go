@@ -42,3 +42,14 @@ func TestStockAggregate(t *testing.T) {
 		t.Errorf("error aggregation: %+v, %+v", e2, r2)
 	}
 }
+
+func TestStockMarshal(t *testing.T) {
+	payload := `{ "ticker": "Apple", "price": 1999 }`
+	_, err := oracle.UnmarshalStock([]byte(payload))
+
+	if err != nil {
+		t.Errorf("Unmarshal stock failed: %+v\n", err)
+	}
+
+	// t.Errorf("%+v", stock)
+}

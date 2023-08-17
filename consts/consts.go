@@ -18,8 +18,8 @@ const (
 )
 
 const (
-	// length in bytes -> 500KB
-	PayloadMaxLen   = 1024 * 500
+	// length in bytes
+	PayloadMaxLen   = 1024
 	HistoryCacheLen = 500
 	HistoryPurgeLen = 200
 )

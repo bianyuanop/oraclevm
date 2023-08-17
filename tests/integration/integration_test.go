@@ -46,6 +46,7 @@ import (
 	lconsts "github.com/bianyuanop/oraclevm/consts"
 	"github.com/bianyuanop/oraclevm/controller"
 	"github.com/bianyuanop/oraclevm/genesis"
+	"github.com/bianyuanop/oraclevm/oracle"
 	lrpc "github.com/bianyuanop/oraclevm/rpc"
 	"github.com/bianyuanop/oraclevm/utils"
 )
@@ -701,6 +702,32 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 
 		// Close connection when done
 		gomega.Ω(cli.Close()).Should(gomega.BeNil())
+	})
+
+	ginkgo.It("testing functionality of stock aggregation", func() {
+		parser, err := instances[0].lcli.Parser(context.Background())
+		gomega.Ω(err).Should(gomega.BeNil())
+		submit, _, _, err := instances[0].cli.GenerateTransaction(
+			context.Background(),
+			parser,
+			nil,
+			&actions.UploadEntity{
+				EntityIndex: 0,
+				EntityType:  0,
+				Payload:     []byte(`{ "ticker": "Apple", "price": 1999 }`),
+			},
+			factory,
+		)
+		gomega.Ω(err).Should(gomega.BeNil())
+		gomega.Ω(submit(context.Background())).Should(gomega.BeNil())
+
+		history, err := instances[0].lcli.AggregationHistory(context.TODO(), 0, 1)
+		gomega.Ω(err).Should(gomega.BeNil())
+		gomega.Ω(history).Should(gomega.HaveLen(1))
+
+		stock, ok := history[0].(*oracle.Stock)
+		gomega.Ω(ok).Should(gomega.BeTrue())
+		gomega.Ω(stock.Price).Should(gomega.Equal(1999))
 	})
 })
 

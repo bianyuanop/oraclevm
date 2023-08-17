@@ -180,6 +180,8 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 					return err
 				}
 
+				c.Logger().Debug("UploadEntity Triggered")
+				c.Logger().Debug(string(result.Output))
 				c.oracle.InsertEntity(entityWithMeta.ID, entityWithMeta.Type, entityWithMeta.Entity)
 			}
 		}
@@ -189,10 +191,12 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 	for i := 0; i < int(c.oracle.Counter()); i++ {
 		aggretationResult, err := c.oracle.GetAggregatedResult(uint64(i))
 		if err != nil {
+			c.Logger().Debug(fmt.Sprintf("entity %d has an emtpy record for this block: %+v", i, err))
 			continue
 		}
 
 		entityIndex, entityType, err := c.oracle.GetEntityMeta(uint64(i))
+		// should never happen
 		if err != nil {
 			continue
 		}

@@ -78,11 +78,12 @@ func (ue *UploadEntity) Marshal(p *codec.Packer) {
 func UnmarshalUploadEntity(p *codec.Packer, _ *warp.Message) (chain.Action, error) {
 	var upload UploadEntity
 
-	upload.EntityType = p.UnpackUint64(true)
-	upload.EntityIndex = p.UnpackUint64(true)
-	p.UnpackBytes(consts.PayloadMaxLen, true, &upload.Payload)
+	// both can be 0
+	upload.EntityType = p.UnpackUint64(false)
+	upload.EntityIndex = p.UnpackUint64(false)
+	p.UnpackBytes(consts.PayloadMaxLen, false, &upload.Payload)
 
-	return &upload, p.Err()
+	return &upload, nil
 }
 
 func (ue *UploadEntity) MaxUnits(chain.Rules) uint64 {

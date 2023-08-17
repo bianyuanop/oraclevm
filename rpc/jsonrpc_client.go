@@ -15,6 +15,7 @@ import (
 	"github.com/ava-labs/hypersdk/utils"
 	"github.com/bianyuanop/oraclevm/consts"
 	"github.com/bianyuanop/oraclevm/genesis"
+	"github.com/bianyuanop/oraclevm/oracle"
 	_ "github.com/bianyuanop/oraclevm/registry" // ensure registry populated
 	"github.com/bianyuanop/oraclevm/storage"
 )
@@ -84,6 +85,21 @@ func (cli *JSONRPCClient) Balance(ctx context.Context, addr string) (uint64, err
 		resp,
 	)
 	return resp.Amount, err
+}
+
+func (cli *JSONRPCClient) AggregationHistory(ctx context.Context, entityIndex uint64, limit uint64) ([]oracle.Entity, error) {
+	resp := new(HistoryReply)
+	err := cli.requester.SendRequest(
+		ctx,
+		"history",
+		&HistoryArgs{
+			EntityIndex: entityIndex,
+			Limit:       limit,
+		},
+		resp,
+	)
+
+	return resp.History, err
 }
 
 func (cli *JSONRPCClient) WaitForBalance(

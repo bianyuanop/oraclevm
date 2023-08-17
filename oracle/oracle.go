@@ -230,10 +230,11 @@ func NewAggregationHistory() *AggregationHistory {
 
 func (ah *AggregationHistory) GetHistory(limit uint64) []Entity {
 	if limit > ah.Length {
-		return ah.History
+		return ah.History[:ah.Length]
 	}
 
-	return ah.History[consts.HistoryCacheLen-limit:]
+	// latest limit ones
+	return ah.History[ah.Length-limit : ah.Length]
 }
 
 func (ah *AggregationHistory) Push(e Entity) {
@@ -326,10 +327,14 @@ func (o *Oracle) GetAggregatedResult(id uint64) (Entity, error) {
 }
 
 func UnmarshalEntity(_type uint64, payload []byte) (Entity, error) {
-	switch _type {
+	switch int(_type) {
 	case StockID:
-		s, _ := UnmarshalStock(payload)
-		return Entity(s), ErrMarshalEntityFailed
+		s, err := UnmarshalStock(payload)
+		if err != nil {
+			return nil, ErrMarshalEntityFailed
+		}
+
+		return Entity(s), nil
 	default:
 		return nil, ErrNotSupportedEntity
 	}
