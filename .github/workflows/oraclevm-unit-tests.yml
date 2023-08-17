@@ -11,7 +11,7 @@ jobs:
   oraclevm-unit-tests:
     if: ${{ github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'run unit') }}
     runs-on:
-      labels: ubuntu-20.04-32
+      labels: ubuntu-20.04
     timeout-minutes: 10
     steps:
       - name: Checkout
