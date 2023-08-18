@@ -87,7 +87,7 @@ func (cli *JSONRPCClient) Balance(ctx context.Context, addr string) (uint64, err
 	return resp.Amount, err
 }
 
-func (cli *JSONRPCClient) AggregationHistory(ctx context.Context, entityIndex uint64, limit uint64) ([]oracle.Entity, error) {
+func (cli *JSONRPCClient) AggregationHistory(ctx context.Context, entityIndex uint64, limit uint64) ([][]byte, int, error) {
 	resp := new(HistoryReply)
 	err := cli.requester.SendRequest(
 		ctx,
@@ -99,7 +99,35 @@ func (cli *JSONRPCClient) AggregationHistory(ctx context.Context, entityIndex ui
 		resp,
 	)
 
-	return resp.History, err
+	return resp.History, resp.Length, err
+}
+
+func (cli *JSONRPCClient) AvailableEntities(ctx context.Context) ([]*oracle.EntityCollectionMeta, error) {
+	resp := new(EntitiesMetaReply)
+
+	err := cli.requester.SendRequest(
+		ctx,
+		"entities",
+		&EntitiesMetaArgs{},
+		resp,
+	)
+
+	return resp.Metas, err
+}
+
+func (cli *JSONRPCClient) CollectionCount(ctx context.Context, entityIndex uint64) (uint64, error) {
+	resp := new(EntityCollectionCountReply)
+
+	err := cli.requester.SendRequest(
+		ctx,
+		"eccount",
+		&EntityCollectionCountArgs{
+			EntityIndex: entityIndex,
+		},
+		resp,
+	)
+
+	return resp.Count, err
 }
 
 func (cli *JSONRPCClient) WaitForBalance(

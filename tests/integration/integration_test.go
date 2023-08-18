@@ -229,7 +229,7 @@ var _ = ginkgo.BeforeSuite(func() {
 			genesisBytes,
 			nil,
 			[]byte(
-				`{"parallelism":3, "testMode":true, "logLevel":"debug"}`,
+				`{"parallelism":3, "testMode":true, "logLevel":"debug", "trackedStocks": ["AMD", "Apple"]}`,
 			),
 			toEngine,
 			nil,
@@ -704,6 +704,38 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 		gomega.Ω(cli.Close()).Should(gomega.BeNil())
 	})
 
+	// ginkgo.It("test rpc methods work", func() {
+	// 	history, err := instances[0].lcli.AggregationHistory(context.TODO(), 0, 20)
+	// 	gomega.Ω(err).Should(gomega.BeNil())
+	// 	gomega.Ω(history).Should(gomega.HaveLen(0))
+	// })
+
+	ginkgo.It("ensure oracle configuration is properly loaded", func() {
+		metas, err := instances[0].lcli.AvailableEntities(context.TODO())
+		gomega.Ω(err).Should(gomega.BeNil())
+		gomega.Ω(metas).Should(gomega.HaveLen(2))
+
+		amd := &oracle.EntityCollectionMeta{
+			EntityName: "AMD",
+			EntityID:   0,
+			EntityType: oracle.StockID,
+		}
+
+		apple := &oracle.EntityCollectionMeta{
+			EntityName: "Apple",
+			EntityID:   1,
+			EntityType: oracle.StockID,
+		}
+
+		gomega.Ω(metas[0].EntityID).Should(gomega.Equal(amd.EntityID))
+		gomega.Ω(metas[0].EntityName).Should(gomega.Equal(amd.EntityName))
+		gomega.Ω(metas[0].EntityType).Should(gomega.Equal(amd.EntityType))
+
+		gomega.Ω(metas[1].EntityID).Should(gomega.Equal(apple.EntityID))
+		gomega.Ω(metas[1].EntityName).Should(gomega.Equal(apple.EntityName))
+		gomega.Ω(metas[1].EntityType).Should(gomega.Equal(apple.EntityType))
+	})
+
 	ginkgo.It("testing functionality of stock aggregation", func() {
 		parser, err := instances[0].lcli.Parser(context.Background())
 		gomega.Ω(err).Should(gomega.BeNil())
@@ -714,20 +746,37 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 			&actions.UploadEntity{
 				EntityIndex: 0,
 				EntityType:  0,
-				Payload:     []byte(`{ "ticker": "Apple", "price": 1999 }`),
+				Payload:     []byte(`{ "ticker": "AMD", "price": 1999 }`),
 			},
 			factory,
 		)
 		gomega.Ω(err).Should(gomega.BeNil())
 		gomega.Ω(submit(context.Background())).Should(gomega.BeNil())
 
-		history, err := instances[0].lcli.AggregationHistory(context.TODO(), 0, 1)
+		accept := expectBlk(instances[0])
+		results := accept()
+		gomega.Ω(results).Should(gomega.HaveLen(1))
+		output := results[0].Output
+		entityWithMeta, err := oracle.UnmarshalEntityWithMeta(output)
 		gomega.Ω(err).Should(gomega.BeNil())
-		gomega.Ω(history).Should(gomega.HaveLen(1))
 
-		stock, ok := history[0].(*oracle.Stock)
+		s, ok := entityWithMeta.Entity.(*oracle.Stock)
 		gomega.Ω(ok).Should(gomega.BeTrue())
-		gomega.Ω(stock.Price).Should(gomega.Equal(1999))
+		gomega.Ω(s.Price).Should(gomega.Equal(uint64(1999)))
+		gomega.Ω(s.Ticker).Should(gomega.Equal("AMD"))
+
+		count, err := instances[0].lcli.CollectionCount(context.TODO(), 0)
+		gomega.Ω(err).Should(gomega.BeNil())
+		gomega.Ω(count).Should(gomega.Equal(uint64(1)))
+
+		history, length, err := instances[0].lcli.AggregationHistory(context.TODO(), 0, 1)
+		gomega.Ω(err).Should(gomega.BeNil())
+		gomega.Ω(length).Should(gomega.Equal(1))
+
+		stock, err := oracle.UnmarshalStock(history[0])
+		gomega.Ω(err).Should(gomega.BeNil())
+		gomega.Ω(stock.Price).Should(gomega.Equal(uint64(1999)))
+		gomega.Ω(stock.Ticker).Should(gomega.Equal("AMD"))
 	})
 })
 

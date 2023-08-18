@@ -98,6 +98,20 @@ var (
 	}
 )
 
+func UnmarshalEntity(_type uint64, payload []byte) (Entity, error) {
+	switch int(_type) {
+	case StockID:
+		s, err := UnmarshalStock(payload)
+		if err != nil {
+			return nil, ErrMarshalEntityFailed
+		}
+
+		return Entity(s), nil
+	default:
+		return nil, ErrNotSupportedEntity
+	}
+}
+
 type EntityAggregator interface {
 	Result() (Entity, error)
 	MergeOne(Entity)
@@ -216,6 +230,12 @@ func (ec *EntityCollecton) Clear() {
 	ec.aggregator = AggregatorFactory(ec._type, ec.EntityName)
 }
 
+type EntityCollectionMeta struct {
+	EntityName string `json:"name"`
+	EntityID   uint64 `json:"id"`
+	EntityType uint64 `json:"type"`
+}
+
 type AggregationHistory struct {
 	History []Entity
 	Length  uint64
@@ -223,7 +243,7 @@ type AggregationHistory struct {
 
 func NewAggregationHistory() *AggregationHistory {
 	return &AggregationHistory{
-		History: make([]Entity, consts.HistoryCacheLen),
+		History: make([]Entity, 0),
 		Length:  0,
 	}
 }
@@ -234,16 +254,19 @@ func (ah *AggregationHistory) GetHistory(limit uint64) []Entity {
 	}
 
 	// latest limit ones
-	return ah.History[ah.Length-limit : ah.Length]
+	return ah.History[ah.Length-limit:]
 }
 
 func (ah *AggregationHistory) Push(e Entity) {
+	// TODO: make it more efficient
 	if ah.Length >= consts.HistoryCacheLen {
-		copy(ah.History, ah.History[consts.HistoryPurgeLen:])
-		ah.Length = consts.HistoryCacheLen - consts.HistoryPurgeLen
+		lengthExceed := ah.Length - consts.HistoryCacheLen
+		// truncate to cache len - 1
+		ah.History = ah.History[lengthExceed+1:]
+		ah.Length = consts.HistoryCacheLen - 1
 	}
 
-	ah.History[ah.Length] = e
+	ah.History = append(ah.History, e)
 	ah.Length += 1
 }
 
@@ -326,20 +349,6 @@ func (o *Oracle) GetAggregatedResult(id uint64) (Entity, error) {
 	return o.oracles[id].Result()
 }
 
-func UnmarshalEntity(_type uint64, payload []byte) (Entity, error) {
-	switch int(_type) {
-	case StockID:
-		s, err := UnmarshalStock(payload)
-		if err != nil {
-			return nil, ErrMarshalEntityFailed
-		}
-
-		return Entity(s), nil
-	default:
-		return nil, ErrNotSupportedEntity
-	}
-}
-
 func (o *Oracle) Counter() uint64 {
 	return o.counter
 }
@@ -350,4 +359,27 @@ func (o *Oracle) GetHistory(entityIndex uint64, limit uint64) ([]Entity, error) 
 	}
 
 	return o.history[entityIndex].GetHistory(limit), nil
+}
+
+func (o *Oracle) GetAvailableEntities() []*EntityCollectionMeta {
+	ecms := make([]*EntityCollectionMeta, o.counter)
+
+	var index uint64
+	for index = 0; index < o.counter; index++ {
+		ecms[index] = &EntityCollectionMeta{
+			EntityName: o.oracles[index].EntityName,
+			EntityID:   o.oracles[index].EntityID,
+			EntityType: o.oracles[index]._type,
+		}
+	}
+
+	return ecms
+}
+
+func (o *Oracle) GetEntityCollectionCount(index uint64) (uint64, error) {
+	if index >= o.counter {
+		return 0, ErrOutOfEntityCollectionRange
+	}
+
+	return o.history[index].Length, nil
 }

@@ -44,3 +44,11 @@ func (c *Controller) GetBalanceFromState(
 func (c *Controller) GetHistoryFromState(entityIndex uint64, limit uint64) ([]oracle.Entity, error) {
 	return c.oracle.GetHistory(entityIndex, limit)
 }
+
+func (c *Controller) GetAvailableEntities() ([]*oracle.EntityCollectionMeta, error) {
+	return c.oracle.GetAvailableEntities(), nil
+}
+
+func (c *Controller) GetEntitiesCollectionCount(entityIndex uint64) (uint64, error) {
+	return c.oracle.GetEntityCollectionCount(entityIndex)
+}

@@ -19,4 +19,6 @@ type Controller interface {
 	GetTransaction(context.Context, ids.ID) (bool, int64, bool, uint64, error)
 	GetBalanceFromState(context.Context, crypto.PublicKey) (uint64, error)
 	GetHistoryFromState(uint64, uint64) ([]oracle.Entity, error)
+	GetAvailableEntities() ([]*oracle.EntityCollectionMeta, error)
+	GetEntitiesCollectionCount(entityIndex uint64) (uint64, error)
 }

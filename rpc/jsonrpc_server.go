@@ -87,7 +87,8 @@ type HistoryArgs struct {
 }
 
 type HistoryReply struct {
-	History []oracle.Entity `json:"history"`
+	History [][]byte `json:"history"`
+	Length  int      `json:"length"`
 }
 
 func (j *JSONRPCServer) History(req *http.Request, args *HistoryArgs, reply *HistoryReply) error {
@@ -99,7 +100,56 @@ func (j *JSONRPCServer) History(req *http.Request, args *HistoryArgs, reply *His
 		return err
 	}
 
-	reply.History = history
+	reply.Length = len(history)
+	reply.History = make([][]byte, reply.Length)
+	for i := 0; i < int(args.Limit); i++ {
+		reply.History[i] = history[i].Marshal()
+	}
+
+	return nil
+}
+
+type EntitiesMetaArgs struct{}
+
+type EntitiesMetaReply struct {
+	Metas []*oracle.EntityCollectionMeta `json:"metas"`
+}
+
+func (j *JSONRPCServer) Entities(req *http.Request, _ *EntitiesMetaArgs, reply *EntitiesMetaReply) error {
+	_, span := j.c.Tracer().Start(req.Context(), "Server.Entities")
+	defer span.End()
+
+	metas, err := j.c.GetAvailableEntities()
+	// never happen
+	if err != nil {
+		return err
+	}
+
+	reply.Metas = metas
+
+	return nil
+}
+
+type EntityCollectionCountArgs struct {
+	EntityIndex uint64 `json:"index"`
+}
+
+type EntityCollectionCountReply struct {
+	Count uint64 `json:"count"`
+}
+
+// Entity Collection Count
+func (j *JSONRPCServer) Eccount(req *http.Request, args *EntityCollectionCountArgs, reply *EntityCollectionCountReply) error {
+	_, span := j.c.Tracer().Start(req.Context(), "Server.EntityCollectionCount")
+	defer span.End()
+
+	count, err := j.c.GetEntitiesCollectionCount(args.EntityIndex)
+	// never happen
+	if err != nil {
+		return err
+	}
+
+	reply.Count = count
 
 	return nil
 }

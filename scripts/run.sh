@@ -134,7 +134,7 @@ cat <<EOF > ${TMPDIR}/morpheusvm.config
   "continuousProfilerDir":"${TMPDIR}/morpheusvm-e2e-profiles/*",
   "logLevel": "${LOGLEVEL}",
   "stateSyncServerDelay": ${STATESYNC_DELAY},
-  "trackedStocks": ["Apple", "AMD"]
+  "trackedStocks": ["AMD", "Apple"]
 }
 EOF
 mkdir -p ${TMPDIR}/morpheusvm-e2e-profiles
