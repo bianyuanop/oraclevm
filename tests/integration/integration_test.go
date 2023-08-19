@@ -736,7 +736,7 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 		gomega.Ω(metas[1].EntityType).Should(gomega.Equal(apple.EntityType))
 	})
 
-	ginkgo.It("testing functionality of stock aggregation", func() {
+	ginkgo.It("testing functionality of entity execution", func() {
 		parser, err := instances[0].lcli.Parser(context.Background())
 		gomega.Ω(err).Should(gomega.BeNil())
 		submit, _, _, err := instances[0].cli.GenerateTransaction(
@@ -777,6 +777,55 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 		gomega.Ω(err).Should(gomega.BeNil())
 		gomega.Ω(stock.Price).Should(gomega.Equal(uint64(1999)))
 		gomega.Ω(stock.Ticker).Should(gomega.Equal("AMD"))
+	})
+
+	ginkgo.It("test functionality of stock aggregation", func() {
+		ginkgo.By("submitting two transactions", func() {
+			parser, err := instances[0].lcli.Parser(context.Background())
+			gomega.Ω(err).Should(gomega.BeNil())
+			submit, _, _, err := instances[0].cli.GenerateTransaction(
+				context.Background(),
+				parser,
+				nil,
+				&actions.UploadEntity{
+					EntityIndex: 0,
+					EntityType:  0,
+					Payload:     []byte(`{ "ticker": "AMD", "price": 1999 }`),
+				},
+				factory,
+			)
+			gomega.Ω(err).Should(gomega.BeNil())
+			gomega.Ω(submit(context.Background())).Should(gomega.BeNil())
+
+			submit2, _, _, err2 := instances[0].cli.GenerateTransaction(
+				context.Background(),
+				parser,
+				nil,
+				&actions.UploadEntity{
+					EntityIndex: 0,
+					EntityType:  0,
+					Payload:     []byte(`{ "ticker": "AMD", "price": 2001 }`),
+				},
+				factory,
+			)
+			gomega.Ω(err2).Should(gomega.BeNil())
+			gomega.Ω(submit2(context.Background())).Should(gomega.BeNil())
+		})
+
+		ginkgo.By("build block and check aggregation result", func() {
+			accept := expectBlk(instances[0])
+			results := accept()
+			gomega.Ω(results).Should(gomega.HaveLen(2))
+
+			history, length, err := instances[0].lcli.AggregationHistory(context.TODO(), 0, 1)
+			gomega.Ω(err).Should(gomega.BeNil())
+			gomega.Ω(length).Should(gomega.Equal(1))
+
+			stock, err := oracle.UnmarshalStock(history[0])
+			gomega.Ω(err).Should(gomega.BeNil())
+			gomega.Ω(stock.Price).Should(gomega.Equal(uint64(2000)))
+			gomega.Ω(stock.Ticker).Should(gomega.Equal("AMD"))
+		})
 	})
 })
 
