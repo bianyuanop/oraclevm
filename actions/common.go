@@ -7,4 +7,5 @@ package actions
 const (
 	transferID     uint8 = 0
 	uploadEntityID uint8 = 1
+	queryID        uint8 = 2
 )

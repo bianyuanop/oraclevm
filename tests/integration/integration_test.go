@@ -840,6 +840,80 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 			gomega.Ω(stock.Ticker).Should(gomega.Equal("AMD"))
 		})
 	})
+
+	ginkgo.It("test warp query", func() {
+		ginkgo.By("submit and build block to aggregate feeds", func() {
+			parser, err := instances[0].lcli.Parser(context.Background())
+			gomega.Ω(err).Should(gomega.BeNil())
+			submit, _, _, err := instances[0].cli.GenerateTransaction(
+				context.Background(),
+				parser,
+				nil,
+				&actions.UploadEntity{
+					EntityIndex: 0,
+					EntityType:  0,
+					Payload:     []byte(`{ "ticker": "AMD", "price": 999 }`),
+				},
+				factory,
+			)
+			gomega.Ω(err).Should(gomega.BeNil())
+			gomega.Ω(submit(context.Background())).Should(gomega.BeNil())
+			accept := expectBlk(instances[0])
+			results := accept()
+			gomega.Ω(results).Should(gomega.HaveLen(1))
+		})
+
+		ginkgo.By("submit query transaction", func() {
+			wq := &actions.WarpQuery{}
+			wtb, err := wq.Marshal()
+			gomega.Ω(err).Should(gomega.BeNil())
+			uwm, err := warp.NewUnsignedMessage(networkID, ids.Empty, wtb)
+			gomega.Ω(err).Should(gomega.BeNil())
+			wm, err := warp.NewMessage(uwm, &warp.BitSetSignature{})
+			gomega.Ω(err).Should(gomega.BeNil())
+			tx := chain.NewTx(
+				&chain.Base{
+					ChainID:   instances[0].chainID,
+					Timestamp: hutils.UnixRMilli(-1, 5*consts.MillisecondsPerSecond),
+					UnitPrice: 1000,
+				},
+				wm,
+				&actions.Query{},
+			)
+			msg, err := tx.Digest()
+			gomega.Ω(err).Should(gomega.BeNil())
+			auth, err := factory.Sign(msg, tx.Action)
+			gomega.Ω(err).Should(gomega.BeNil())
+			tx.Auth = auth
+			p := codec.NewWriter(0, consts.MaxInt)
+			gomega.Ω(tx.Marshal(p)).Should(gomega.BeNil())
+			gomega.Ω(p.Err()).Should(gomega.BeNil())
+			txID, err := instances[0].cli.SubmitTx(
+				context.Background(),
+				p.Bytes(),
+			)
+			fmt.Fprintf(ginkgo.GinkgoWriter, "transactionid: %s\n", txID.String())
+			gomega.Ω(err).Should(gomega.BeNil())
+		})
+
+		ginkgo.By("build block & check query result", func() {
+			accept := expectBlk(instances[0])
+			results := accept()
+			gomega.Ω(results).Should(gomega.HaveLen(1))
+
+			wm := results[0].WarpMessage
+			payload := wm.Payload
+			var queryRes actions.QueryResult
+			err := json.Unmarshal(payload, &queryRes)
+			gomega.Ω(err).Should(gomega.BeNil())
+			gomega.Ω(queryRes.EntityType).Should(gomega.Equal(uint64(0)))
+			entityPayload := queryRes.Payload
+			stk, err := oracle.UnmarshalStock(entityPayload)
+			gomega.Ω(err).Should(gomega.BeNil())
+			gomega.Ω(stk.Price).Should(gomega.Equal(uint64(1000)))
+			gomega.Ω(stk.Ticker).Should(gomega.Equal("AMD"))
+		})
+	})
 })
 
 func expectBlk(i instance) func() []*chain.Result {

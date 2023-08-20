@@ -12,6 +12,8 @@ import (
 
 type metrics struct {
 	transfer prometheus.Counter
+	upload   prometheus.Counter
+	query    prometheus.Counter
 }
 
 func newMetrics(gatherer ametrics.MultiGatherer) (*metrics, error) {
@@ -20,6 +22,16 @@ func newMetrics(gatherer ametrics.MultiGatherer) (*metrics, error) {
 			Namespace: "actions",
 			Name:      "transfer",
 			Help:      "number of transfer actions",
+		}),
+		upload: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "actions",
+			Name:      "upload",
+			Help:      "number of upload actions",
+		}),
+		query: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "actions",
+			Name:      "query",
+			Help:      "number of query actions",
 		}),
 	}
 	r := prometheus.NewRegistry()

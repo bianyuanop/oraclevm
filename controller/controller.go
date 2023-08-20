@@ -175,6 +175,7 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 			case *actions.Transfer:
 				c.metrics.transfer.Inc()
 			case *actions.UploadEntity:
+				c.metrics.upload.Inc()
 				entityWithMeta, err := oracle.UnmarshalEntityWithMeta(result.Output)
 				if err != nil {
 					return err
@@ -183,6 +184,9 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 				c.Logger().Debug("UploadEntity Triggered")
 				c.Logger().Debug(string(result.Output))
 				c.oracle.InsertEntity(entityWithMeta.ID, entityWithMeta.Type, entityWithMeta.Entity)
+
+			case *actions.Query:
+				c.metrics.query.Inc()
 			}
 		}
 	}
@@ -202,6 +206,7 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 		}
 		c.Logger().Debug(fmt.Sprintf("%+v", aggretationResult))
 		storage.StoreAggregationResult(ctx, batch, entityType, entityIndex, blk.GetTimestamp(), aggretationResult.Marshal())
+		storage.CacheAggregationResult(ctx, batch, entityType, entityIndex, blk.GetTimestamp(), aggretationResult.Marshal())
 	}
 
 	// c.oracle.ClearEntityCollection()

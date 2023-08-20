@@ -45,6 +45,7 @@ const (
 	entityPrefix = 0x3
 	// store entity aggregation result
 	entityAggregationResultPrefix = 0x4
+	entityAggregationCachePrefix  = 0x5
 )
 
 var (
@@ -375,6 +376,45 @@ func GetAggregationResult(
 
 	v, err := db.Get(k)
 
+	if err != nil {
+		return 0, make([]byte, 0), err
+	}
+
+	_, entityType, _, _, payload = UnpackEntity(v)
+
+	return
+}
+
+func PrefixAggregationCacheResult(entityIndex uint64) (k []byte) {
+	k = make([]byte, 1+consts.Uint64Len)
+	k[0] = entityAggregationCachePrefix
+	binary.BigEndian.PutUint64(k[1:], entityIndex)
+
+	return
+}
+
+func CacheAggregationResult(
+	ctx context.Context,
+	db database.KeyValueWriter,
+	entityType uint64,
+	entityIndex uint64,
+	tick int64,
+	payload []byte,
+) error {
+	k := PrefixAggregationCacheResult(entityIndex)
+	v := PackEntity(entityIndex, entityType, tick, crypto.EmptyPublicKey, payload)
+
+	return db.Put(k, v)
+}
+
+func GetCachedAggregationResult(
+	ctx context.Context,
+	db chain.Database,
+	entityIndex uint64,
+) (entityType uint64, payload []byte, e error) {
+	k := PrefixAggregationCacheResult(entityIndex)
+
+	v, err := db.GetValue(ctx, k)
 	if err != nil {
 		return 0, make([]byte, 0), err
 	}
