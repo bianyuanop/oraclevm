@@ -200,12 +200,15 @@ func (c *Controller) Accepted(ctx context.Context, blk *chain.StatelessBlock) er
 		if err != nil {
 			continue
 		}
-
+		c.Logger().Debug(fmt.Sprintf("%+v", aggretationResult))
 		storage.StoreAggregationResult(ctx, batch, entityType, entityIndex, blk.GetTimestamp(), aggretationResult.Marshal())
 	}
 
 	// c.oracle.ClearEntityCollection()
 	c.oracle.ClearOracleNSaveHistory()
+
+	count, _ := c.oracle.GetEntityCollectionCount(0)
+	c.Logger().Debug(fmt.Sprintf("%+d", count))
 
 	return batch.Write()
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"sync"
 
 	"github.com/bianyuanop/oraclevm/consts"
 )
@@ -239,6 +240,7 @@ type EntityCollectionMeta struct {
 type AggregationHistory struct {
 	History []Entity
 	Length  uint64
+	l       sync.RWMutex
 }
 
 func NewAggregationHistory() *AggregationHistory {
@@ -249,6 +251,9 @@ func NewAggregationHistory() *AggregationHistory {
 }
 
 func (ah *AggregationHistory) GetHistory(limit uint64) []Entity {
+	ah.l.RLock()
+	defer ah.l.RUnlock()
+
 	if limit > ah.Length {
 		return ah.History[:ah.Length]
 	}
@@ -258,6 +263,9 @@ func (ah *AggregationHistory) GetHistory(limit uint64) []Entity {
 }
 
 func (ah *AggregationHistory) Push(e Entity) {
+	ah.l.Lock()
+	defer ah.l.Unlock()
+
 	// TODO: make it more efficient
 	if ah.Length >= consts.HistoryCacheLen {
 		lengthExceed := ah.Length - consts.HistoryCacheLen
@@ -268,6 +276,13 @@ func (ah *AggregationHistory) Push(e Entity) {
 
 	ah.History = append(ah.History, e)
 	ah.Length += 1
+}
+
+func (ah *AggregationHistory) Count() uint64 {
+	ah.l.RLock()
+	defer ah.l.RUnlock()
+
+	return ah.Length
 }
 
 type Oracle struct {
@@ -381,5 +396,5 @@ func (o *Oracle) GetEntityCollectionCount(index uint64) (uint64, error) {
 		return 0, ErrOutOfEntityCollectionRange
 	}
 
-	return o.history[index].Length, nil
+	return o.history[index].Count(), nil
 }

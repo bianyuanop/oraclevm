@@ -102,7 +102,7 @@ func (j *JSONRPCServer) History(req *http.Request, args *HistoryArgs, reply *His
 
 	reply.Length = len(history)
 	reply.History = make([][]byte, reply.Length)
-	for i := 0; i < int(args.Limit); i++ {
+	for i := 0; i < reply.Length; i++ {
 		reply.History[i] = history[i].Marshal()
 	}
 
@@ -140,7 +140,7 @@ type EntityCollectionCountReply struct {
 
 // Entity Collection Count
 func (j *JSONRPCServer) Eccount(req *http.Request, args *EntityCollectionCountArgs, reply *EntityCollectionCountReply) error {
-	_, span := j.c.Tracer().Start(req.Context(), "Server.EntityCollectionCount")
+	_, span := j.c.Tracer().Start(req.Context(), "Server.Eccount")
 	defer span.End()
 
 	count, err := j.c.GetEntitiesCollectionCount(args.EntityIndex)

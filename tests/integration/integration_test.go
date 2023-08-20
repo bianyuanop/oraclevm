@@ -765,6 +765,8 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 		gomega.Ω(s.Price).Should(gomega.Equal(uint64(1999)))
 		gomega.Ω(s.Ticker).Should(gomega.Equal("AMD"))
 
+		time.Sleep(2 * time.Second)
+
 		count, err := instances[0].lcli.CollectionCount(context.TODO(), 0)
 		gomega.Ω(err).Should(gomega.BeNil())
 		gomega.Ω(count).Should(gomega.Equal(uint64(1)))
@@ -780,6 +782,12 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 	})
 
 	ginkgo.It("test functionality of stock aggregation", func() {
+		ginkgo.By("ensure there is already one aggregation result in there", func() {
+			historyLen, err := instances[0].lcli.CollectionCount(context.TODO(), 0)
+			gomega.Ω(err).Should(gomega.BeNil())
+			gomega.Ω(historyLen).Should(gomega.Equal(uint64(1)))
+		})
+
 		ginkgo.By("submitting two transactions", func() {
 			parser, err := instances[0].lcli.Parser(context.Background())
 			gomega.Ω(err).Should(gomega.BeNil())
@@ -790,7 +798,7 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 				&actions.UploadEntity{
 					EntityIndex: 0,
 					EntityType:  0,
-					Payload:     []byte(`{ "ticker": "AMD", "price": 1999 }`),
+					Payload:     []byte(`{ "ticker": "AMD", "price": 20 }`),
 				},
 				factory,
 			)
@@ -804,7 +812,7 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 				&actions.UploadEntity{
 					EntityIndex: 0,
 					EntityType:  0,
-					Payload:     []byte(`{ "ticker": "AMD", "price": 2001 }`),
+					Payload:     []byte(`{ "ticker": "AMD", "price": 30 }`),
 				},
 				factory,
 			)
@@ -816,6 +824,11 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 			accept := expectBlk(instances[0])
 			results := accept()
 			gomega.Ω(results).Should(gomega.HaveLen(2))
+			time.Sleep(2 * time.Second)
+
+			historyLen, err := instances[0].lcli.CollectionCount(context.TODO(), 0)
+			gomega.Ω(err).Should(gomega.BeNil())
+			gomega.Ω(historyLen).Should(gomega.Equal(uint64(2)))
 
 			history, length, err := instances[0].lcli.AggregationHistory(context.TODO(), 0, 1)
 			gomega.Ω(err).Should(gomega.BeNil())
@@ -823,7 +836,7 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 
 			stock, err := oracle.UnmarshalStock(history[0])
 			gomega.Ω(err).Should(gomega.BeNil())
-			gomega.Ω(stock.Price).Should(gomega.Equal(uint64(2000)))
+			gomega.Ω(stock.Price).Should(gomega.Equal(uint64(25)))
 			gomega.Ω(stock.Ticker).Should(gomega.Equal("AMD"))
 		})
 	})
