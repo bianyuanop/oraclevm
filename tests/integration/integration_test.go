@@ -864,7 +864,10 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 		})
 
 		ginkgo.By("submit query transaction", func() {
-			wq := &actions.WarpQuery{}
+			wq := &actions.WarpQuery{
+				EntityIndex:        0,
+				DestinationChainID: ids.GenerateTestID(),
+			}
 			wtb, err := wq.Marshal()
 			gomega.Ω(err).Should(gomega.BeNil())
 			uwm, err := warp.NewUnsignedMessage(networkID, ids.Empty, wtb)

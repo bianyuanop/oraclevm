@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/bianyuanop/oraclevm/actions"
 	"github.com/spf13/cobra"
 )
@@ -90,6 +91,45 @@ var uploadCmd = &cobra.Command{
 			EntityType:  uint64(entityType),
 			Payload:     []byte(payload),
 		}, cli, bcli, factory, true)
+
+		return err
+	},
+}
+
+var queryCmd = &cobra.Command{
+	Use: "query",
+	RunE: func(*cobra.Command, []string) error {
+		ctx := context.Background()
+		_, _, factory, cli, bcli, err := handler.DefaultActor()
+		if err != nil {
+			return err
+		}
+
+		entityIndex, err := handler.Root().PromptChoice("index", 1)
+		if err != nil {
+			return err
+		}
+
+		warpQuery := actions.WarpQuery{
+			EntityIndex:        uint64(entityIndex),
+			DestinationChainID: ids.GenerateTestID(),
+		}
+
+		payload, err := warpQuery.Marshal()
+		if err != nil {
+			return err
+		}
+
+		uwm, err := warp.NewUnsignedMessage(uint32(1), ids.Empty, payload)
+		if err != nil {
+			return err
+		}
+		wm, err := warp.NewMessage(uwm, &warp.BitSetSignature{})
+		if err != nil {
+			return err
+		}
+
+		_, _, err = sendAndWait(ctx, wm, &actions.Query{}, cli, bcli, factory, true)
 
 		return err
 	},
