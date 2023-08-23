@@ -22,7 +22,7 @@ The most advantage of OracleVM is about it can deliver any types of off-chain da
                                  +--------------+
                                  | Stock Feeds  |
                                  +--------------+
-                                   :                                                     Verify & Storemorpheusvm Txs
+                                   :                                                     Verify & Store Txs
                                    :                                                   +--------------------+
                                    v                                                   v                    |
   +----------------------+       +--------------+  UploadEntity(id, type, payload)   +------------------------+
