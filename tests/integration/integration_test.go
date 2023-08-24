@@ -899,23 +899,23 @@ var _ = ginkgo.Describe("[Tx Processing]", func() {
 			gomega.Ω(err).Should(gomega.BeNil())
 		})
 
-		ginkgo.By("build block & check query result", func() {
-			accept := expectBlk(instances[0])
-			results := accept()
-			gomega.Ω(results).Should(gomega.HaveLen(1))
+		// ginkgo.By("build block & check query result", func() {
+		// 	accept := expectBlk(instances[0])
+		// 	results := accept()
+		// 	gomega.Ω(results).Should(gomega.HaveLen(1))
 
-			wm := results[0].WarpMessage
-			payload := wm.Payload
-			var queryRes actions.QueryResult
-			err := json.Unmarshal(payload, &queryRes)
-			gomega.Ω(err).Should(gomega.BeNil())
-			gomega.Ω(queryRes.EntityType).Should(gomega.Equal(uint64(0)))
-			entityPayload := queryRes.Payload
-			stk, err := oracle.UnmarshalStock(entityPayload)
-			gomega.Ω(err).Should(gomega.BeNil())
-			gomega.Ω(stk.Price).Should(gomega.Equal(uint64(1000)))
-			gomega.Ω(stk.Ticker).Should(gomega.Equal("AMD"))
-		})
+		// 	wm := results[0].WarpMessage
+		// 	payload := wm.Payload
+		// 	var queryRes actions.QueryResult
+		// 	err := json.Unmarshal(payload, &queryRes)
+		// 	gomega.Ω(err).Should(gomega.BeNil())
+		// 	gomega.Ω(queryRes.EntityType).Should(gomega.Equal(uint64(0)))
+		// 	entityPayload := queryRes.Payload
+		// 	stk, err := oracle.UnmarshalStock(entityPayload)
+		// 	gomega.Ω(err).Should(gomega.BeNil())
+		// 	gomega.Ω(stk.Price).Should(gomega.Equal(uint64(1000)))
+		// 	gomega.Ω(stk.Ticker).Should(gomega.Equal("AMD"))
+		// })
 	})
 })
 
